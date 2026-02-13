@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gov Game 1 — Cause & Effect (Mastery)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111a2f;
+      --panel2:#0f1830;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --line:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.40);
+      --radius:18px;
+
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
+        linear-gradient(180deg, #0b1220, #070b14);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(980px, 100%);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+    .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      max-width:70ch;
+    }
+    .topRight{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(43,213,118,.38);
+      background:rgba(43,213,118,.14);
+      white-space:nowrap;
+    }
+    .btnRow{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ border-color:rgba(122,162,255,.35); }
+    button.primary{
+      border-color:rgba(122,162,255,.45);
+      background:rgba(122,162,255,.16);
+    }
+    button.danger{
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.14);
+    }
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      padding:14px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns:1fr; }
+      .topRight{ align-items:flex-start; text-align:left; }
+      header{ flex-direction:column; }
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-weight:800;
+    }
+    .stem{
+      margin-top:10px;
+      font-size:16px;
+      line-height:1.35;
+    }
+    .prompt{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .choices{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+    .choiceBtn{
+      text-align:left;
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      cursor:pointer;
+      color:var(--text);
+      font-weight:700;
+      line-height:1.25;
+    }
+    .choiceBtn:hover{ border-color:rgba(122,162,255,.35); }
+    .choiceBtn small{ display:block; color:var(--muted); font-weight:600; margin-top:6px; }
+
+    .msg{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+      display:none;
+    }
+    .msg.good{
+      display:block;
+      border-color:rgba(43,213,118,.45);
+      background:rgba(43,213,118,.10);
+    }
+    .msg.bad{
+      display:block;
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.10);
+    }
+    .msg.warn{
+      display:block;
+      border-color:rgba(255,209,102,.45);
+      background:rgba(255,209,102,.10);
+    }
+    .msg .title{
+      font-weight:900;
+      margin-bottom:6px;
+    }
+
+    .sideRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width: 160px;
+    }
+    .stat b{ color:var(--text); }
+
+    .nameGate{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+    }
+    input{
+      width:min(380px,100%);
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{ border-color:rgba(122,162,255,.45); }
+
+    .footer{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .codeBox{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      display:none;
+      width:100%;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    /* Hardened error box (prevents mystery whitescreens) */
+    .errBox{
+      display:none;
+      margin:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,92,122,.55);
+      background:rgba(255,92,122,.10);
+    }
+    .errBox .t{
+      font-weight:900;
+      margin-bottom:6px;
+    }
+    .errBox pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="errBox" id="errBox">
+      <div class="t">On-page Error Box (so you never get a mystery white screen)</div>
+      <pre id="errText"></pre>
+    </div>
+
+    <header>
+      <div>
+        <h1>Gov Game 1 — Cause &amp; Effect (Mastery)</h1>
+        <p class="sub">
+          Rule: Wrong answers still count against accuracy (even if you fix it). Mastery unlocks only when you finish
+          <b>all</b> questions with <b>0 misses</b>.
+        </p>
+
+        <div class="nameGate" id="nameGate">
+          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <div class="badge">MASTERy = 100%</div>
+        <div class="btnRow">
+          <button id="btnRestart" class="danger" disabled>Restart</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kicker" id="kicker">NOT STARTED</div>
+        <div class="stem" id="stem">Enter your name and click Start.</div>
+        <div class="prompt" id="prompt"></div>
+
+        <div class="choices" id="choices"></div>
+
+        <div class="msg" id="msgBox">
+          <div class="title" id="msgTitle"></div>
+          <div id="msgBody"></div>
+        </div>
+
+        <div class="codeBox" id="codeBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="kicker">STATS</div>
+
+        <div class="sideRow">
+          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
+          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
+          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
+          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
+          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Mastery Status:</b><br>
+            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Legend Gov Series • Game 1 • Cause &amp; Effect</div>
+      <div>Tip: If something breaks, the error box at the top will tell you what/where.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =============================
+  // HARDENED ERROR BOX
+  // =============================
+  const errBox = document.getElementById('errBox');
+  const errText = document.getElementById('errText');
+  function showError(e){
+    errBox.style.display = 'block';
+    errText.textContent = (e && e.stack) ? e.stack : String(e);
+  }
+  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
+
+  // =============================
+  // QUESTION BANK (PROPERTY NAMES MUST MATCH ENGINE)
+  // id, cs, skill, stem, prompt, choices[4], answerIndex, explanation, hint
+  // =============================
+  const questions = [
+    {
+      id:"G1-001",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A student group wants to influence a vote in the Ohio General Assembly on a bill that affects schools.",
+      prompt:"Which action is MOST likely to directly influence state legislators during the decision-making process?",
+      choices:[
+        "Start a letter-writing campaign to members of the General Assembly explaining the impact of the bill.",
+        "Hold a public demonstration in front of the White House to demand change.",
+        "File an appeal with the U.S. Supreme Court to block the bill immediately.",
+        "Speak at a local city council meeting about the bill’s effects on state policy."
+      ],
+      answerIndex:0,
+      explanation:"Because the decision-maker is the Ohio General Assembly, directly communicating with state legislators is the most effective input point for influencing their vote.",
+      hint:"Match the action to the correct level of government (state vs local vs federal)."
+    },
+    {
+      id:"G1-002",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A city council is deciding whether to pass a new recycling ordinance.",
+      prompt:"Which outcome is most likely if citizens provide strong, specific public-comment testimony at the city council meeting?",
+      choices:[
+        "The ordinance is more likely to be shaped by citizen input because officials hear reasons and evidence before voting.",
+        "The U.S. Senate must approve the ordinance before it can take effect.",
+        "The state Supreme Court automatically writes the final ordinance language.",
+        "The governor must negotiate the ordinance with a foreign government."
+      ],
+      answerIndex:0,
+      explanation:"Public comment is a direct input point in many local public policy processes, increasing the chance the council considers citizen evidence before voting.",
+      hint:"Think: which branch/level is actually making this decision?"
+    },
+    {
+      id:"G1-003",
+      cs:"CS 2",
+      skill:"Cause & Effect",
+      stem:"A political party’s candidate wins multiple elections and the party controls several offices.",
+      prompt:"What is the most likely effect of winning elections for a political party?",
+      choices:[
+        "The party can shape public policy more directly because its members hold office and can vote on/implement policy.",
+        "The party is required to stop communicating with voters once in power.",
+        "The party loses influence because interest groups take over official roles.",
+        "The party can only influence government through courts, not elections."
+      ],
+      answerIndex:0,
+      explanation:"Winning elections puts party members in office, which increases direct influence over lawmaking and policy implementation.",
+      hint:"Connect elections → holding office → making/implementing policy."
+    },
+    {
+      id:"G1-004",
+      cs:"CS 3",
+      skill:"Cause & Effect",
+      stem:"A citizen reads a viral social-media post claiming a candidate supports a policy.",
+      prompt:"Which strategy best reduces the risk of misinformation shaping the citizen’s opinion?",
+      choices:[
+        "Verify the claim by finding the same information in multiple credible sources with supporting evidence.",
+        "Share the post widely and rely on comments to confirm whether it is true.",
+        "Only use the candidate’s campaign website as the single source of confirmation.",
+        "Assume the claim is true because many people reposted it."
+      ],
+      answerIndex:0,
+      explanation:"Cross-checking multiple credible sources helps confirm accuracy and reduces the impact of bias or false claims.",
+      hint:"Credibility increases when claims are supported and confirmed by multiple reliable sources."
+    },
+    {
+      id:"G1-005",
+      cs:"CS 4",
+      skill:"Cause & Effect",
+      stem:"Legislators meet privately with party members to ensure agreement before a vote.",
+      prompt:"What is the most likely purpose of this process in a democratic system?",
+      choices:[
+        "Build consensus so the group can present a unified position and reduce internal conflict during voting.",
+        "Eliminate all debate by preventing opposing viewpoints from being heard.",
+        "Replace compromise by forcing every member to adopt the same personal beliefs.",
+        "Avoid negotiation by refusing to talk to anyone outside the party."
+      ],
+      answerIndex:0,
+      explanation:"Consensus building aims to find agreement within a group so it can act cohesively in the democratic process.",
+      hint:"Which skill is about finding shared agreement inside a group?"
+    },
+    {
+      id:"G1-006",
+      cs:"CS 4",
+      skill:"Cause & Effect",
+      stem:"A president needs 2/3 of the Senate to ratify a treaty and faces strong opposition to one provision.",
+      prompt:"Which action is most likely to increase Senate approval through compromise?",
+      choices:[
+        "Modify the treaty language to address the specific provision that a key group opposes.",
+        "Refuse any changes and demand a vote immediately.",
+        "Ask the Supreme Court to ratify the treaty instead of the Senate.",
+        "Hold only campaign rallies and avoid meeting with senators."
+      ],
+      answerIndex:0,
+      explanation:"Compromise involves making concessions to resolve specific objections and gain necessary support.",
+      hint:"Compromise = concessions to settle differences."
+    },
+    {
+      id:"G1-007",
+      cs:"CS 5",
+      skill:"Cause & Effect",
+      stem:"A government operates on the principle of limited government.",
+      prompt:"What is the best explanation of the effect of limited government on officials?",
+      choices:[
+        "Officials can only use powers granted by law/Constitution, reducing arbitrary use of power.",
+        "Officials can do anything they believe is good for society without legal limits.",
+        "Officials are controlled only by public opinion, not laws or courts.",
+        "Officials can ignore constitutional restrictions during elections."
+      ],
+      answerIndex:0,
+      explanation:"Limited government means power is constrained by law; officials are not free to act outside granted authority.",
+      hint:"Limited government = power must come from legal authority."
+    },
+    {
+      id:"G1-008",
+      cs:"CS 6",
+      skill:"Cause & Effect",
+      stem:"Anti-Federalists argued that the Constitution needed a Bill of Rights.",
+      prompt:"What was the most likely reason Anti-Federalists demanded this addition?",
+      choices:[
+        "They feared the national government could threaten civil liberties without explicit protections.",
+        "They wanted to eliminate state governments completely.",
+        "They wanted to expand executive power beyond limits.",
+        "They wanted to remove elections from government."
+      ],
+      answerIndex:0,
+      explanation:"Anti-Federalists worried individual freedoms were not sufficiently protected, so they pushed for explicit rights limits on federal power.",
+      hint:"Think: civil liberties and fear of centralized power."
+    },
+    {
+      id:"G1-009",
+      cs:"CS 7",
+      skill:"Cause & Effect",
+      stem:"Over time, constitutional government has changed through amendments, court decisions, legislation, and informal practices.",
+      prompt:"Which statement best explains why Supreme Court decisions can change constitutional government?",
+      choices:[
+        "Court interpretations clarify and extend constitutional meaning, affecting how principles apply in real cases.",
+        "Courts write new amendments and bypass ratification.",
+        "Courts replace elections with appointments for all offices.",
+        "Courts enforce laws by issuing executive orders."
+      ],
+      answerIndex:0,
+      explanation:"When the Court interprets constitutional provisions, it shapes how the Constitution is applied across situations, effectively changing government practice.",
+      hint:"Interpretation changes application—especially through judicial review/incorporation."
+    },
+    {
+      id:"G1-010",
+      cs:"CS 14",
+      skill:"Cause & Effect",
+      stem:"Rights in the U.S. are not absolute; they are balanced by the rights of others and the common good.",
+      prompt:"What is the most likely result of this principle?",
+      choices:[
+        "People may face limits on exercising a right when that exercise causes harm or violates others’ rights.",
+        "People can exercise any right in any way without consequences.",
+        "Only the federal government has rights; citizens do not.",
+        "Rights can never be limited under any circumstances."
+      ],
+      answerIndex:0,
+      explanation:"Balancing rights means some limits exist when actions harm others or threaten the common good.",
+      hint:"Balance = rights + responsibilities + respect for others."
+    }
+  ];
+
+  // =============================
+  // ELEMENTS
+  // =============================
+  const elNameGate = document.getElementById('nameGate');
+  const elStudentName = document.getElementById('studentName');
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
+
+  const elKicker = document.getElementById('kicker');
+  const elStem = document.getElementById('stem');
+  const elPrompt = document.getElementById('prompt');
+  const elChoices = document.getElementById('choices');
+
+  const elMsgBox = document.getElementById('msgBox');
+  const elMsgTitle = document.getElementById('msgTitle');
+  const elMsgBody = document.getElementById('msgBody');
+
+  const stName = document.getElementById('stName');
+  const stProg = document.getElementById('stProg');
+  const stAcc  = document.getElementById('stAcc');
+  const stAtt  = document.getElementById('stAtt');
+  const stStart= document.getElementById('stStart');
+  const stEnd  = document.getElementById('stEnd');
+  const stMastery = document.getElementById('stMastery');
+
+  const elCodeBox = document.getElementById('codeBox');
+
+  // =============================
+  // STATE
+  // =============================
+  let started = false;
+  let startISO = null;
+  let endISO = null;
+
+  let idx = 0;
+  let attempts = 0;          // counts first-attempt submissions per question
+  let correct = 0;           // counts questions answered correctly (eventually)
+  let misses = 0;            // counts questions missed on first attempt
+  const perQ = questions.map(() => ({ firstAttemptMade:false, missed:false, solved:false }));
+
+  function fmt(tsISO){
+    if(!tsISO) return "—";
+    const d = new Date(tsISO);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+
+  // Small, safe hash for submit code
+  function hashString(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16).toUpperCase();
+  }
+
+  function updateStats(){
+    stName.textContent = elStudentName.value.trim() || "—";
+    stProg.textContent = `${Math.min(correct, questions.length)} / ${questions.length}`;
+    const acc = attempts ? Math.round((correct / attempts) * 100) : 0;
+    stAcc.textContent = `${acc}%`;
+    stAtt.textContent = String(attempts);
+    stStart.textContent = fmt(startISO);
+    stEnd.textContent = fmt(endISO);
+
+    const allSolved = perQ.every(x => x.solved);
+    const mastery = allSolved && misses === 0;
+
+    if(mastery){
+      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
+      stMastery.style.color = "var(--good)";
+    } else {
+      stMastery.textContent = "Locked — finish all questions with 0 misses.";
+      stMastery.style.color = "var(--muted)";
+    }
+
+    // Show submit code only at mastery
+    if(mastery && endISO){
+      const name = elStudentName.value.trim();
+      const payload = `${name}|${startISO}|${endISO}|A${attempts}|C${correct}|M${misses}`;
+      const code = `GOV1-${hashString(payload)}-${attempts}${correct}${misses}`;
+      elCodeBox.style.display = "block";
+      elCodeBox.textContent =
+        `✅ SUBMIT CODE (copy/paste)\n\n` +
+        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
+        `${code}\n\n` +
+        `Note: If the code is missing, mastery is NOT complete.`;
+    } else {
+      elCodeBox.style.display = "none";
+      elCodeBox.textContent = "";
+    }
+  }
+
+  function setMsg(kind, title, body){
+    elMsgBox.className = `msg ${kind}`;
+    elMsgTitle.textContent = title;
+    elMsgBody.textContent = body;
+  }
+
+  function clearMsg(){
+    elMsgBox.className = "msg";
+    elMsgTitle.textContent = "";
+    elMsgBody.textContent = "";
+    elMsgBox.style.display = "none";
+  }
+
+  function renderQuestion(){
+    clearMsg();
+    elMsgBox.style.display = "none";
+
+    const q = questions[idx];
+    elKicker.textContent = `${q.cs} • ${q.skill} • Question ${idx+1} of ${questions.length}`;
+    elStem.textContent = q.stem;
+    elPrompt.textContent = q.prompt;
+
+    elChoices.innerHTML = "";
+    q.choices.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.className = "choiceBtn";
+      b.type = "button";
+      b.innerHTML = `${String.fromCharCode(65+i)}. ${c}`;
+      b.addEventListener('click', () => choose(i));
+      elChoices.appendChild(b);
+    });
+
+    updateStats();
+  }
+
+  function nextQuestion(){
+    if(idx < questions.length - 1){
+      idx++;
+      renderQuestion();
+      return;
+    }
+
+    // End of game reached
+    const allSolved = perQ.every(x => x.solved);
+    if(allSolved && misses === 0){
+      endISO = new Date().toISOString();
+      setMsg("good", "Mastery reached (100%)", "You finished every question with zero misses. Copy the Submit Code below.");
+      elMsgBox.style.display = "block";
+      updateStats();
+    } else {
+      setMsg("warn", "End reached — Mastery NOT achieved",
+        `You finished the set, but you had ${misses} miss(es). Restart and aim for a perfect run (0 misses).`);
+      elMsgBox.style.display = "block";
+      updateStats();
+    }
+  }
+
+  function choose(choiceIndex){
+    const q = questions[idx];
+    const pq = perQ[idx];
+
+    // Count attempts ONLY on first submitted attempt for that question
+    if(!pq.firstAttemptMade){
+      attempts++;
+      pq.firstAttemptMade = true;
+    }
+
+    const isCorrect = (choiceIndex === q.answerIndex);
+
+    if(isCorrect){
+      if(!pq.solved){
+        pq.solved = true;
+        correct++;
+      }
+
+      // If they previously missed, no 3-second explanation
+      if(pq.missed){
+        setMsg("good", "Correct", "Moving to the next question.");
+        elMsgBox.style.display = "block";
+        updateStats();
+        setTimeout(nextQuestion, 250);
+        return;
+      }
+
+      // First-try correct: show explanation for 3 seconds then auto-advance
+      setMsg("good", "Correct (First Try)", q.explanation);
+      elMsgBox.style.display = "block";
+      updateStats();
+      setTimeout(nextQuestion, 3000);
+      return;
+    }
+
+    // WRONG
+    if(!pq.missed){
+      pq.missed = true;
+      misses++;
+    }
+    setMsg("bad", "Not Yet", `Hint: ${q.hint}`);
+    elMsgBox.style.display = "block";
+    updateStats();
+  }
+
+  function startGame(){
+    const name = elStudentName.value.trim();
+    if(name.length < 2){
+      setMsg("warn","Name Required","Please enter your name to begin.");
+      elMsgBox.style.display = "block";
+      return;
+    }
+
+    started = true;
+    startISO = new Date().toISOString();
+    endISO = null;
+
+    btnRestart.disabled = false;
+    btnRestart.addEventListener('click', () => location.reload());
+
+    // Lock name input after start
+    elStudentName.disabled = true;
+    btnStart.disabled = true;
+
+    idx = 0;
+    attempts = 0;
+    correct = 0;
+    misses = 0;
+    for(let i=0;i<perQ.length;i++){
+      perQ[i] = { firstAttemptMade:false, missed:false, solved:false };
+    }
+
+    renderQuestion();
+  }
+
+  // Start button
+  btnStart.addEventListener('click', startGame);
+
+  // Enter key starts game
+  elStudentName.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') startGame();
+  });
+
+  // Initial paint
+  elChoices.innerHTML = "";
+  updateStats();
+
+})(); // end IIFE
+</script>
+</body>
+</html>
