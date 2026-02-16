@@ -1,498 +1,1048 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Gov Game 1 — Cause & Effect (Mastery)</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gov Game 1 — Cause & Effect (Mastery)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111a2f;
+      --panel2:#0f1830;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --line:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.40);
+      --radius:18px;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
+        linear-gradient(180deg, #0b1220, #070b14);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(980px, 100%);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    h1{margin:0;font-size:18px;line-height:1.2}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:72ch}
+    .topRight{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(43,213,118,.38);
+      background:rgba(43,213,118,.14);
+      white-space:nowrap;
+    }
+    .btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ border-color:rgba(122,162,255,.35); }
+    button.primary{
+      border-color:rgba(122,162,255,.45);
+      background:rgba(122,162,255,.16);
+    }
+    button.danger{
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.14);
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
 
-<style>
-:root{
-  --bg:#0b1220;
-  --panel:#111a2f;
-  --text:#e7eefc;
-  --muted:#a8b4cf;
-  --line:rgba(255,255,255,.12);
-  --good:#2bd576;
-  --bad:#ff5c7a;
-  --warn:#ffd166;
-  --accent:#7aa2ff;
-  --radius:18px;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:linear-gradient(180deg,#0b1220,#070b14);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-}
-.app{
-  width:min(1000px,100%);
-  background:rgba(0,0,0,.25);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:18px;
-}
-h1{margin:0 0 6px}
-.sub{color:var(--muted);font-size:14px;margin-bottom:12px}
-button{
-  background:rgba(255,255,255,.08);
-  border:1px solid var(--line);
-  color:var(--text);
-  padding:10px 14px;
-  border-radius:12px;
-  font-weight:700;
-  cursor:pointer;
-}
-button:hover{border-color:var(--accent)}
-button.primary{background:rgba(122,162,255,.18)}
-button.danger{background:rgba(255,92,122,.18)}
-button:disabled{opacity:.6;cursor:not-allowed}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      padding:14px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns:1fr; }
+      .topRight{ align-items:flex-start; text-align:left; }
+      header{ flex-direction:column; }
+    }
 
-input{
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid var(--line);
-  background:rgba(0,0,0,.4);
-  color:var(--text);
-}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-weight:800;
+    }
+    .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
+    .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
 
-.choices{margin-top:12px;display:grid;gap:10px}
-.choiceBtn{
-  text-align:left;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:rgba(0,0,0,.4);
-  cursor:pointer;
-}
-.choiceBtn:hover{border-color:var(--accent)}
+    .choices{ margin-top:12px; display:grid; gap:10px; }
+    .choiceBtn{
+      text-align:left;
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      cursor:pointer;
+      color:var(--text);
+      font-weight:700;
+      line-height:1.25;
+    }
+    .choiceBtn:hover{ border-color:rgba(122,162,255,.35); }
 
-.msg{margin-top:12px;padding:12px;border-radius:14px;display:none}
-.msg.good{background:rgba(43,213,118,.15);display:block}
-.msg.bad{background:rgba(255,92,122,.15);display:block}
-.msg.warn{background:rgba(255,209,102,.15);display:block}
+    .msg{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+      display:none;
+    }
+    .msg.good{
+      display:block;
+      border-color:rgba(43,213,118,.45);
+      background:rgba(43,213,118,.10);
+    }
+    .msg.bad{
+      display:block;
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.10);
+    }
+    .msg.warn{
+      display:block;
+      border-color:rgba(255,209,102,.45);
+      background:rgba(255,209,102,.10);
+    }
+    .msg .title{ font-weight:900; margin-bottom:6px; }
 
-.stats{margin-top:18px;font-size:14px;color:var(--muted)}
-.codeBox{
-  margin-top:12px;
-  background:rgba(0,0,0,.4);
-  padding:12px;
-  border-radius:12px;
-  display:none;
-  font-family:monospace;
-}
-.errBox{
-  display:none;
-  background:rgba(255,92,122,.15);
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:12px;
-}
-</style>
+    .sideRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width: 160px;
+    }
+    .stat b{ color:var(--text); }
+
+    .nameGate{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+    }
+    input{
+      width:min(380px,100%);
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{ border-color:rgba(122,162,255,.45); }
+
+    .footer{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .codeBox{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      display:none;
+      width:100%;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    /* Hardened error box */
+    .errBox{
+      display:none;
+      margin:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,92,122,.55);
+      background:rgba(255,92,122,.10);
+    }
+    .errBox .t{ font-weight:900; margin-bottom:6px; }
+    .errBox pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
+  <div class="app">
+    <div class="errBox" id="errBox">
+      <div class="t">On-page Error Box (so you never get a mystery white screen)</div>
+      <pre id="errText"></pre>
+    </div>
 
-<div id="errBox" class="errBox"></div>
+    <header>
+      <div>
+        <h1>Gov Game 1 — Cause &amp; Effect (Mastery)</h1>
+        <p class="sub">
+          Ladder mode: Q1–15 = Starter reps • Q16–30 = Test-mode (released-modeled).
+          Rule: one miss = accuracy drops; mastery unlocks only if you finish <b>all</b> questions with <b>0 misses</b>.
+        </p>
 
-<h1>Gov Game 1 — Cause & Effect</h1>
-<div class="sub">
-Starter (Q1–15) → Test Mode (Q16–30).  
-Mastery = 100% accuracy (0 misses).
-</div>
+        <div class="nameGate" id="nameGate">
+          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
+        </div>
+      </div>
 
-<div id="nameGate">
-  <input id="studentName" placeholder="Enter your name (First Last)" />
-  <button class="primary" id="btnStart">Start</button>
-</div>
+      <div class="topRight">
+        <div class="badge">MASTERy = 100%</div>
+        <div class="btnRow">
+          <button id="btnRestart" class="danger" disabled>Restart</button>
+        </div>
+      </div>
+    </header>
 
-<div id="gameArea" style="display:none;">
-  <div id="kicker"></div>
-  <div id="stem" style="margin-top:8px;font-size:16px;"></div>
-  <div id="prompt" style="margin-top:6px;color:var(--muted);"></div>
+    <div class="grid">
+      <div class="card">
+        <div class="kicker" id="kicker">NOT STARTED</div>
+        <div class="stem" id="stem">Enter your name and click Start.</div>
+        <div class="prompt" id="prompt"></div>
 
-  <div id="choices" class="choices"></div>
+        <div class="choices" id="choices"></div>
 
-  <div id="msgBox" class="msg"></div>
+        <div class="msg" id="msgBox">
+          <div class="title" id="msgTitle"></div>
+          <div id="msgBody"></div>
+        </div>
 
-  <div class="stats">
-    Progress: <span id="stProg"></span> |
-    Accuracy: <span id="stAcc"></span> |
-    Misses: <span id="stMiss"></span> |
-    Started: <span id="stStart"></span> |
-    Completed: <span id="stEnd"></span>
+        <div class="codeBox" id="codeBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="kicker">STATS</div>
+
+        <div class="sideRow">
+          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
+          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
+          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
+          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
+          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Mastery Status:</b><br>
+            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Legend Gov Series • Game 1 • Cause &amp; Effect</div>
+      <div>Tip: If something breaks, the error box at the top will tell you where.</div>
+    </div>
   </div>
-
-  <div id="codeBox" class="codeBox"></div>
-
-  <div style="margin-top:12px;">
-    <button class="danger" id="btnRestart">Restart</button>
-  </div>
-</div>
-
-</div>
 
 <script>
-window.onerror = function(msg,src,line,col,error){
-  document.getElementById("errBox").style.display="block";
-  document.getElementById("errBox").innerText=msg;
-};
+(() => {
+  // =============================
+  // HARDENED ERROR BOX
+  // =============================
+  const errBox = document.getElementById('errBox');
+  const errText = document.getElementById('errText');
+  function showError(e){
+    errBox.style.display = 'block';
+    errText.textContent = (e && e.stack) ? e.stack : String(e);
+  }
+  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
 
-// =============================
-// QUESTION BANK (30 QUESTIONS)
-// =============================
-const questions = [
-  {
-  {
-  id:"G1-016",
-  cs:"CS 7",
-  skill:"Cause & Effect",
-  stem:"Courts interpret constitutional language when deciding cases, and those interpretations guide later decisions.",
-  prompt:"Which statement best explains how Supreme Court decisions can change constitutional government over time?",
-  choices:[
-    "Their interpretations shape how constitutional principles are applied in future cases and in government practice.",
-    "They replace the amendment process by adding new constitutional text automatically.",
-    "They create executive orders that have the same power as laws passed by Congress.",
-    "They allow states to ignore federal law whenever states disagree with national policy."
-  ],
-  answerIndex:0,
-  explanation:"Court interpretations become precedents that guide later rulings and influence how government actions are carried out under the Constitution.",
-  hint:"Look for precedent + interpretation affecting future application."
-},
-{
-  id:"G1-017",
-  cs:"CS 7",
-  skill:"Cause & Effect",
-  stem:"Congress passes a federal law addressing election procedures. A state law conflicts with part of the federal law.",
-  prompt:"Assuming the federal law is constitutional, what is the most likely result of the conflict?",
-  choices:[
-    "The conflicting state law is unenforceable to the extent it conflicts with the federal law.",
-    "The state law automatically overrides the federal law because elections are always a state-only issue.",
-    "Both laws must be enforced equally until voters decide which law they prefer.",
-    "The conflict can only be resolved if the president approves the state law."
-  ],
-  answerIndex:0,
-  explanation:"Under the Supremacy Clause, valid federal law overrides conflicting state law, making the conflicting part of the state law unenforceable.",
-  hint:"Supremacy = valid federal law wins over conflict."
-},
-{
-  id:"G1-018",
-  cs:"CS 8",
-  skill:"Cause & Effect",
-  stem:"Police want access to a person’s home to search for evidence related to a crime, but they do not have a warrant.",
-  prompt:"Which statement best explains why a warrant is generally required in this situation?",
-  choices:[
-    "The Fourth Amendment limits unreasonable searches and typically requires probable cause and a warrant.",
-    "The First Amendment requires police to obtain permission before questioning any witnesses.",
-    "The Second Amendment requires police to search private property to prevent crime.",
-    "The Tenth Amendment gives police unlimited authority to search anywhere within a state."
-  ],
-  answerIndex:0,
-  explanation:"The Fourth Amendment protects against unreasonable searches; warrants (with probable cause) are a key safeguard.",
-  hint:"Search/seizure + probable cause + warrant = 4th."
-},
-{
-  id:"G1-019",
-  cs:"CS 8",
-  skill:"Cause & Effect",
-  stem:"During questioning, a suspect is pressured to confess and is not told they may remain silent or request an attorney.",
-  prompt:"Which constitutional protections are most directly connected to this situation?",
-  choices:[
-    "Fifth Amendment protection against self-incrimination and Sixth Amendment right to counsel.",
-    "First Amendment protection of freedom of religion and press.",
-    "Second Amendment right to bear arms and Third Amendment quartering limits.",
-    "Eighth Amendment limits on punishment and Tenth Amendment reserved powers."
-  ],
-  answerIndex:0,
-  explanation:"The Fifth protects against compelled self-incrimination; the Sixth includes the right to counsel in criminal prosecutions.",
-  hint:"Confession pressure + lawyer = 5th/6th."
-},
-{
-  id:"G1-020",
-  cs:"CS 9",
-  skill:"Cause & Effect",
-  stem:"A law is challenged in court on the grounds that it violates the U.S. Constitution.",
-  prompt:"If the Supreme Court rules the law unconstitutional, which outcome is most likely?",
-  choices:[
-    "The law cannot be enforced because it conflicts with the Constitution.",
-    "The law automatically becomes part of the Constitution through judicial approval.",
-    "The law must be enforced until Congress repeals it, even if unconstitutional.",
-    "The law becomes optional for federal agencies but required for states."
-  ],
-  answerIndex:0,
-  explanation:"An unconstitutional law is invalid and unenforceable because the Constitution is supreme.",
-  hint:"Unconstitutional → invalid."
-},
-{
-  id:"G1-021",
-  cs:"CS 9",
-  skill:"Cause & Effect",
-  stem:"A state law allows something that a constitutional federal law prohibits in the same situation.",
-  prompt:"Which statement best explains what happens when the laws conflict?",
-  choices:[
-    "The federal law prevails because constitutional federal law overrides conflicting state law.",
-    "The state law prevails because states always control lawmaking inside their borders.",
-    "Both laws apply equally and citizens choose which law to follow.",
-    "The conflict is resolved only by a national referendum of voters."
-  ],
-  answerIndex:0,
-  explanation:"When federal law is constitutional, it is supreme over conflicting state laws.",
-  hint:"Supremacy resolves conflicts."
-},
-{
-  id:"G1-022",
-  cs:"CS 10",
-  skill:"Cause & Effect",
-  stem:"A candidate changes campaign strategy to focus heavily on a small number of states where the outcome is uncertain.",
-  prompt:"Which factor most directly explains why candidates focus on these states?",
-  choices:[
-    "Electoral votes are awarded by state outcomes, so competitive states can determine the election result.",
-    "The House of Representatives selects the president, so states do not matter in presidential elections.",
-    "The Supreme Court assigns electoral votes based on campaign spending levels.",
-    "All states award electoral votes proportionally based on national popular vote totals."
-  ],
-  answerIndex:0,
-  explanation:"Because electoral votes are tied to state results (often winner-take-all), competitive states can decide who reaches the needed electoral majority.",
-  hint:"Think: how do electoral votes translate state results into the national outcome?"
-},
-{
-  id:"G1-023",
-  cs:"CS 11",
-  skill:"Cause & Effect",
-  stem:"A constitutional amendment expands the number of people eligible to vote in national elections.",
-  prompt:"Which outcome is the most likely effect of expanding voter eligibility?",
-  choices:[
-    "A larger portion of the population can participate in elections, potentially changing turnout and representation.",
-    "Federal courts gain the power to write election laws without legislative involvement.",
-    "Political parties are banned because elections become nonpartisan by law.",
-    "State governments lose all authority to manage election procedures."
-  ],
-  answerIndex:0,
-  explanation:"Expanding eligibility increases the potential electorate and can affect participation and representation.",
-  hint:"More eligible voters → potential changes in participation/representation."
-},
-{
-  id:"G1-024",
-  cs:"CS 12",
-  skill:"Cause & Effect",
-  stem:"After losing an election, a political party analyzes why it failed to win support among key groups of voters.",
-  prompt:"Which action would most directly help the party compete more effectively in the next election?",
-  choices:[
-    "Recruit candidates, refine messaging/platform positions, and organize voter outreach efforts.",
-    "Stop campaigning entirely to avoid future criticism and let voters decide on their own.",
-    "Ask courts to appoint party leaders to office to ensure representation.",
-    "Limit voter participation so fewer groups can influence election outcomes."
-  ],
-  answerIndex:0,
-  explanation:"Parties compete by organizing, recruiting candidates, building coalitions, and mobilizing voters.",
-  hint:"Parties gain power through elections—how do they build support?"
-},
-{
-  id:"G1-025",
-  cs:"CS 13",
-  skill:"Cause & Effect",
-  stem:"An interest group meets with lawmakers to provide data, arguments, and policy proposals about a pending bill.",
-  prompt:"Which statement best explains the most likely purpose of this activity?",
-  choices:[
-    "To influence lawmakers’ decisions by shaping how they understand the issue and its consequences.",
-    "To replace elections by choosing which bills become laws without votes.",
-    "To eliminate the need for debate by preventing any opposition from speaking.",
-    "To transfer lawmaking power from legislatures to courts through lobbying."
-  ],
-  answerIndex:0,
-  explanation:"Lobbying aims to influence decisions by providing information, arguments, and political pressure/support.",
-  hint:"Lobbying influences decision-makers; it doesn’t substitute for the lawmaking process."
-},
-{
-  id:"G1-026",
-  cs:"CS 14",
-  skill:"Cause & Effect",
-  stem:"A student argues they can say anything at school at any time because of free speech rights.",
-  prompt:"Which statement best reflects the principle that rights are balanced with the rights of others and the common good?",
-  choices:[
-    "Some limits may apply when speech substantially disrupts learning or infringes on others’ rights.",
-    "Speech is never limited under any circumstances, including threats or harassment.",
-    "Only adults have free speech rights; students have none at school.",
-    "Rights can be removed permanently whenever someone disagrees with a viewpoint."
-  ],
-  answerIndex:0,
-  explanation:"Rights often have limits when exercising them harms others or undermines the functioning of a community setting like a school.",
-  hint:"Balance = rights + responsibilities + avoiding harm/disruption."
-},
-{
-  id:"G1-027",
-  cs:"CS 15",
-  skill:"Cause & Effect",
-  stem:"A speaker delivers an unpopular political message that does not threaten violence or target someone with a true threat.",
-  prompt:"Which outcome is most consistent with First Amendment principles in most situations?",
-  choices:[
-    "The speech is generally protected even when many people strongly disagree with it.",
-    "The government must ban the speech because it could offend the public.",
-    "Only popular viewpoints are protected; unpopular speech is unprotected.",
-    "The speaker must obtain government approval for the viewpoint before speaking."
-  ],
-  answerIndex:0,
-  explanation:"The First Amendment generally protects unpopular political speech unless it crosses specific legal limits (like true threats).",
-  hint:"Protection often includes unpopular viewpoints."
-},
-{
-  id:"G1-028",
-  cs:"CS 16",
-  skill:"Cause & Effect",
-  stem:"A state constitution includes protections for citizens that go beyond what the U.S. Constitution requires.",
-  prompt:"Which statement best explains why this is possible?",
-  choices:[
-    "States may provide additional protections as long as they do not violate the U.S. Constitution.",
-    "States can override the U.S. Constitution whenever state voters approve it.",
-    "State constitutions only apply to federal offices, not state government.",
-    "State constitutions are symbolic documents and do not create enforceable rights."
-  ],
-  answerIndex:0,
-  explanation:"States can expand protections beyond the federal minimum, but they cannot reduce protections below federal constitutional requirements.",
-  hint:"States can add protections, not override the U.S. Constitution."
-},
-{
-  id:"G1-029",
-  cs:"CS 17",
-  skill:"Cause & Effect",
-  stem:"A citizen wants to influence policy about road repairs in their town and a statewide education funding bill.",
-  prompt:"Which strategy best matches how local and state governments typically operate?",
-  choices:[
-    "Contact local officials for local services and contact state legislators for statewide laws and funding decisions.",
-    "Contact only federal officials for both issues because the federal government controls all policy.",
-    "Use a city council meeting to vote directly on statewide legislation.",
-    "Ask the Supreme Court to pass a local budget ordinance and approve state funding."
-  ],
-  answerIndex:0,
-  explanation:"Different levels handle different responsibilities; effective civic action targets the correct level and officials.",
-  hint:"Match the issue to the level that has authority."
-},
-{
-  id:"G1-030",
-  cs:"CS 18–19",
-  skill:"Cause & Effect",
-  stem:"A policy proposal draws attention from interest groups, the media, and citizens who contact officials and organize support or opposition.",
-  prompt:"Which outcome is most likely as a result of this activity?",
-  choices:[
-    "Public opinion and decision-makers may be influenced, potentially changing the proposal’s final form or whether it passes.",
-    "The proposal automatically becomes law without votes because public attention replaces lawmaking.",
-    "Compromise becomes impossible because only one side is allowed to participate.",
-    "Political discussion must stop because policy debates violate free speech protections."
-  ],
-  answerIndex:0,
-  explanation:"Organized participation can shape the policy process by influencing officials, public opinion, and the details of legislation.",
-  hint:"Influence can change outcomes, but it doesn’t bypass the process."
-}
-];
+  // =============================
+  // QUESTION BANK (30) — CLOSED PROPERLY WITH ];
+  // Properties: id, cs, skill, stem, prompt, choices, answerIndex, explanation, hint
+  // =============================
+  const questions = [
+    // -----------------------------
+    // Q1–15 STARTER-ALIGNED (clean reps)
+    // -----------------------------
+    {
+      id:"G1-001",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A student group wants to influence a vote in the Ohio General Assembly on a bill that affects schools.",
+      prompt:"Which action is MOST likely to directly influence state legislators during the decision-making process?",
+      choices:[
+        "Start a letter-writing campaign to members of the General Assembly explaining the impact of the bill.",
+        "Hold a public demonstration in front of the White House to demand change.",
+        "File an appeal with the U.S. Supreme Court to block the bill immediately.",
+        "Speak at a local city council meeting about the bill’s effects on state policy."
+      ],
+      answerIndex:0,
+      explanation:"Because the decision-maker is the Ohio General Assembly, directly communicating with state legislators is the most effective input point for influencing their vote.",
+      hint:"Match the action to the correct level of government (state vs local vs federal)."
+    },
+    {
+      id:"G1-002",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A city council is deciding whether to pass a new recycling ordinance.",
+      prompt:"Which outcome is most likely if citizens provide strong, specific public-comment testimony at the city council meeting?",
+      choices:[
+        "The ordinance is more likely to be shaped by citizen input because officials hear reasons and evidence before voting.",
+        "The U.S. Senate must approve the ordinance before it can take effect.",
+        "The state Supreme Court automatically writes the final ordinance language.",
+        "The governor must negotiate the ordinance with a foreign government."
+      ],
+      answerIndex:0,
+      explanation:"Public comment is a direct input point in many local policy processes, increasing the chance officials consider citizen evidence before voting.",
+      hint:"Who is making the decision here, and what input reaches them directly?"
+    },
+    {
+      id:"G1-003",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A neighborhood group wants a stop sign installed on a street near an elementary school.",
+      prompt:"Which action is MOST likely to lead to a decision on the stop sign?",
+      choices:[
+        "Attend a city council meeting and present traffic-safety concerns and evidence.",
+        "Petition the U.S. House of Representatives to pass a federal traffic law.",
+        "Ask the President to issue an executive order installing the stop sign.",
+        "File a lawsuit in federal court demanding a stop sign in every state."
+      ],
+      answerIndex:0,
+      explanation:"A stop sign is a local issue; city officials and local processes are the most direct route to a decision.",
+      hint:"Local problems → local officials."
+    },
+    {
+      id:"G1-004",
+      cs:"CS 1",
+      skill:"Cause & Effect",
+      stem:"A class is researching a state ballot issue and wants to take civic action.",
+      prompt:"Which plan BEST shows an effective action strategy?",
+      choices:[
+        "Identify decision-makers, use credible evidence, and contact officials through the most direct input points.",
+        "Post only opinions online without checking facts or identifying who decides the issue.",
+        "Wait until after the vote and then complain that the decision was unfair.",
+        "Avoid learning about the issue and rely on rumors to persuade others."
+      ],
+      answerIndex:0,
+      explanation:"Effective civic action connects evidence and communication to the correct decision-makers and steps in the process.",
+      hint:"Action plan = research + correct target + evidence-based input."
+    },
+    {
+      id:"G1-005",
+      cs:"CS 2",
+      skill:"Cause & Effect",
+      stem:"A political party’s candidate wins multiple elections and the party controls several offices.",
+      prompt:"What is the most likely effect of winning elections for a political party?",
+      choices:[
+        "The party can shape public policy more directly because its members hold office and can vote on/implement policy.",
+        "The party is required to stop communicating with voters once in power.",
+        "The party loses influence because interest groups take over official roles.",
+        "The party can only influence government through courts, not elections."
+      ],
+      answerIndex:0,
+      explanation:"Winning elections puts party members in office, increasing their ability to make and carry out policy.",
+      hint:"Elections → office → policy influence."
+    },
+    {
+      id:"G1-006",
+      cs:"CS 2",
+      skill:"Cause & Effect",
+      stem:"A voter agrees with a party’s platform on taxes and education.",
+      prompt:"Which outcome is MOST likely if the voter consistently supports that party in elections?",
+      choices:[
+        "The party is more likely to gain office and advance policies aligned with its platform.",
+        "The party must stop campaigning because it already has supporters.",
+        "Interest groups are banned from participating in politics.",
+        "Courts will write new laws to match the party’s platform."
+      ],
+      answerIndex:0,
+      explanation:"Consistent voter support helps parties win elections and implement preferred policies.",
+      hint:"Parties gain power through elections."
+    },
+    {
+      id:"G1-007",
+      cs:"CS 3",
+      skill:"Cause & Effect",
+      stem:"A citizen reads a viral social-media post claiming a candidate supports a policy.",
+      prompt:"Which strategy best reduces the risk of misinformation shaping the citizen’s opinion?",
+      choices:[
+        "Verify the claim by finding the same information in multiple credible sources with supporting evidence.",
+        "Share the post widely and rely on comments to confirm whether it is true.",
+        "Only use the candidate’s campaign website as the single source of confirmation.",
+        "Assume the claim is true because many people reposted it."
+      ],
+      answerIndex:0,
+      explanation:"Cross-checking multiple credible sources helps confirm accuracy and reduces the impact of bias or false claims.",
+      hint:"Credibility increases when claims are supported and confirmed."
+    },
+    {
+      id:"G1-008",
+      cs:"CS 3",
+      skill:"Cause & Effect",
+      stem:"A news site uses emotionally charged language but provides no evidence for its claims.",
+      prompt:"What is the MOST likely effect of relying on this source alone for political information?",
+      choices:[
+        "The reader may form opinions based on bias or misinformation rather than verified evidence.",
+        "The reader will automatically gain a complete and balanced understanding of the issue.",
+        "The reader will always be protected from propaganda by the First Amendment.",
+        "The reader will become an expert because opinions are more important than facts."
+      ],
+      answerIndex:0,
+      explanation:"A lack of evidence and loaded language increases the risk of misinformation and biased interpretation.",
+      hint:"Look for evidence, sourcing, and balance."
+    },
+    {
+      id:"G1-009",
+      cs:"CS 4",
+      skill:"Cause & Effect",
+      stem:"Legislators meet privately with party members to ensure agreement before a vote.",
+      prompt:"What is the most likely purpose of this process in a democratic system?",
+      choices:[
+        "Build consensus so the group can present a unified position and reduce internal conflict during voting.",
+        "Eliminate all debate by preventing opposing viewpoints from being heard.",
+        "Replace compromise by forcing every member to adopt the same personal beliefs.",
+        "Avoid negotiation by refusing to talk to anyone outside the party."
+      ],
+      answerIndex:0,
+      explanation:"Consensus building aims to find agreement within a group so it can act cohesively in the democratic process.",
+      hint:"Consensus = internal agreement."
+    },
+    {
+      id:"G1-010",
+      cs:"CS 4",
+      skill:"Cause & Effect",
+      stem:"A president needs 2/3 of the Senate to ratify a treaty and faces strong opposition to one provision.",
+      prompt:"Which action is most likely to increase Senate approval through compromise?",
+      choices:[
+        "Modify the treaty language to address the specific provision that a key group opposes.",
+        "Refuse any changes and demand a vote immediately.",
+        "Ask the Supreme Court to ratify the treaty instead of the Senate.",
+        "Hold only campaign rallies and avoid meeting with senators."
+      ],
+      answerIndex:0,
+      explanation:"Compromise involves making concessions to resolve objections and gain support.",
+      hint:"Compromise = adjust to gain votes."
+    },
+    {
+      id:"G1-011",
+      cs:"CS 4",
+      skill:"Cause & Effect",
+      stem:"Two lawmakers agree to support each other’s bills as long as both bills include changes to address public concerns.",
+      prompt:"Which civic skill is MOST directly shown in this example?",
+      choices:[
+        "Negotiation and compromise to reach an agreement both sides can accept.",
+        "Judicial review to declare a law unconstitutional.",
+        "Federalism by dividing power between national and state governments.",
+        "Nullification by allowing states to ignore federal law."
+      ],
+      answerIndex:0,
+      explanation:"The lawmakers are bargaining and making adjustments to reach a workable agreement.",
+      hint:"Agreement formed by give-and-take."
+    },
+    {
+      id:"G1-012",
+      cs:"CS 5",
+      skill:"Cause & Effect",
+      stem:"A government operates on the principle of limited government.",
+      prompt:"What is the best explanation of the effect of limited government on officials?",
+      choices:[
+        "Officials can only use powers granted by law/Constitution, reducing arbitrary use of power.",
+        "Officials can do anything they believe is good for society without legal limits.",
+        "Officials are controlled only by public opinion, not laws or courts.",
+        "Officials can ignore constitutional restrictions during elections."
+      ],
+      answerIndex:0,
+      explanation:"Limited government means power is constrained by law; officials are not free to act outside granted authority.",
+      hint:"Where does an official’s power come from?"
+    },
+    {
+      id:"G1-013",
+      cs:"CS 5",
+      skill:"Cause & Effect",
+      stem:"A constitutional system includes checks and balances among branches.",
+      prompt:"What is the most likely effect of checks and balances?",
+      choices:[
+        "It prevents any one branch from becoming too powerful by allowing other branches to limit its actions.",
+        "It ensures the executive branch always has the final say in policy disputes.",
+        "It removes the need for laws because branches can act independently.",
+        "It allows courts to write legislation without input from elected officials."
+      ],
+      answerIndex:0,
+      explanation:"Checks and balances allow branches to restrain one another, helping prevent abuse of power.",
+      hint:"Checks = limits; balances = shared power."
+    },
+    {
+      id:"G1-014",
+      cs:"CS 6",
+      skill:"Cause & Effect",
+      stem:"Anti-Federalists argued that the Constitution needed a Bill of Rights.",
+      prompt:"What was the most likely reason Anti-Federalists demanded this addition?",
+      choices:[
+        "They feared the national government could threaten civil liberties without explicit protections.",
+        "They wanted to eliminate state governments completely.",
+        "They wanted to expand executive power beyond limits.",
+        "They wanted to remove elections from government."
+      ],
+      answerIndex:0,
+      explanation:"Anti-Federalists worried individual freedoms were not protected enough, so they pushed for explicit limits on federal power.",
+      hint:"Anti-Federalists = fear of centralized power."
+    },
+    {
+      id:"G1-015",
+      cs:"CS 6",
+      skill:"Cause & Effect",
+      stem:"Federalists supported ratification of the Constitution even without an immediate Bill of Rights.",
+      prompt:"Which statement best explains a common Federalist argument?",
+      choices:[
+        "The Constitution already limited government power, and a Bill of Rights could be added later if needed.",
+        "A Bill of Rights was unnecessary because citizens have no natural rights.",
+        "The Constitution should remove state power entirely to prevent conflict.",
+        "The Constitution should allow the president to create laws without Congress."
+      ],
+      answerIndex:0,
+      explanation:"Federalists argued the structure and limits in the Constitution restricted government power, and amendments could be added later.",
+      hint:"Federalists trusted the Constitution’s structure + amendment process."
+    },
 
-  // (For space: remaining 29 questions included exactly as previously provided.
-  // They are identical to the Ladder version I gave you earlier.)
+    // -----------------------------
+    // Q16–30 RELEASED-MODELED (test mode)
+    // -----------------------------
+    {
+      id:"G1-016",
+      cs:"CS 7",
+      skill:"Cause & Effect",
+      stem:"Courts interpret constitutional language when deciding cases, and those interpretations guide later decisions.",
+      prompt:"Which statement best explains how Supreme Court decisions can change constitutional government over time?",
+      choices:[
+        "Their interpretations shape how constitutional principles are applied in future cases and in government practice.",
+        "They replace the amendment process by adding new constitutional text automatically.",
+        "They create executive orders that have the same power as laws passed by Congress.",
+        "They allow states to ignore federal law whenever states disagree with national policy."
+      ],
+      answerIndex:0,
+      explanation:"Court interpretations become precedents that guide later rulings and influence how government actions are carried out under the Constitution.",
+      hint:"Look for precedent + interpretation affecting future application."
+    },
+    {
+      id:"G1-017",
+      cs:"CS 7",
+      skill:"Cause & Effect",
+      stem:"Congress passes a federal law addressing election procedures. A state law conflicts with part of the federal law.",
+      prompt:"Assuming the federal law is constitutional, what is the most likely result of the conflict?",
+      choices:[
+        "The conflicting state law is unenforceable to the extent it conflicts with the federal law.",
+        "The state law automatically overrides the federal law because elections are always a state-only issue.",
+        "Both laws must be enforced equally until voters decide which law they prefer.",
+        "The conflict can only be resolved if the president approves the state law."
+      ],
+      answerIndex:0,
+      explanation:"Under the Supremacy Clause, valid federal law overrides conflicting state law, making the conflicting part of the state law unenforceable.",
+      hint:"Supremacy = valid federal law wins over conflict."
+    },
+    {
+      id:"G1-018",
+      cs:"CS 8",
+      skill:"Cause & Effect",
+      stem:"Police want access to a person’s home to search for evidence related to a crime, but they do not have a warrant.",
+      prompt:"Which statement best explains why a warrant is generally required in this situation?",
+      choices:[
+        "The Fourth Amendment limits unreasonable searches and typically requires probable cause and a warrant.",
+        "The First Amendment requires police to obtain permission before questioning any witnesses.",
+        "The Second Amendment requires police to search private property to prevent crime.",
+        "The Tenth Amendment gives police unlimited authority to search anywhere within a state."
+      ],
+      answerIndex:0,
+      explanation:"The Fourth Amendment protects against unreasonable searches; warrants (with probable cause) are a key safeguard.",
+      hint:"Search/seizure + probable cause + warrant = 4th."
+    },
+    {
+      id:"G1-019",
+      cs:"CS 8",
+      skill:"Cause & Effect",
+      stem:"During questioning, a suspect is pressured to confess and is not told they may remain silent or request an attorney.",
+      prompt:"Which constitutional protections are most directly connected to this situation?",
+      choices:[
+        "Fifth Amendment protection against self-incrimination and Sixth Amendment right to counsel.",
+        "First Amendment protection of freedom of religion and press.",
+        "Second Amendment right to bear arms and Third Amendment quartering limits.",
+        "Eighth Amendment limits on punishment and Tenth Amendment reserved powers."
+      ],
+      answerIndex:0,
+      explanation:"The Fifth protects against compelled self-incrimination; the Sixth includes the right to counsel in criminal prosecutions.",
+      hint:"Confession pressure + lawyer = 5th/6th."
+    },
+    {
+      id:"G1-020",
+      cs:"CS 9",
+      skill:"Cause & Effect",
+      stem:"A law is challenged in court on the grounds that it violates the U.S. Constitution.",
+      prompt:"If the Supreme Court rules the law unconstitutional, which outcome is most likely?",
+      choices:[
+        "The law cannot be enforced because it conflicts with the Constitution.",
+        "The law automatically becomes part of the Constitution through judicial approval.",
+        "The law must be enforced until Congress repeals it, even if unconstitutional.",
+        "The law becomes optional for federal agencies but required for states."
+      ],
+      answerIndex:0,
+      explanation:"An unconstitutional law is invalid and unenforceable because the Constitution is supreme.",
+      hint:"Unconstitutional → invalid."
+    },
+    {
+      id:"G1-021",
+      cs:"CS 9",
+      skill:"Cause & Effect",
+      stem:"A state law allows something that a constitutional federal law prohibits in the same situation.",
+      prompt:"Which statement best explains what happens when the laws conflict?",
+      choices:[
+        "The federal law prevails because constitutional federal law overrides conflicting state law.",
+        "The state law prevails because states always control lawmaking inside their borders.",
+        "Both laws apply equally and citizens choose which law to follow.",
+        "The conflict is resolved only by a national referendum of voters."
+      ],
+      answerIndex:0,
+      explanation:"When federal law is constitutional, it is supreme over conflicting state laws.",
+      hint:"Supremacy resolves conflicts."
+    },
+    {
+      id:"G1-022",
+      cs:"CS 10",
+      skill:"Cause & Effect",
+      stem:"A candidate changes campaign strategy to focus heavily on a small number of states where the outcome is uncertain.",
+      prompt:"Which factor most directly explains why candidates focus on these states?",
+      choices:[
+        "Electoral votes are awarded by state outcomes, so competitive states can determine the election result.",
+        "The House of Representatives selects the president, so states do not matter in presidential elections.",
+        "The Supreme Court assigns electoral votes based on campaign spending levels.",
+        "All states award electoral votes proportionally based on national popular vote totals."
+      ],
+      answerIndex:0,
+      explanation:"Because electoral votes are tied to state results (often winner-take-all), competitive states can decide who reaches the needed electoral majority.",
+      hint:"How do state outcomes translate into winning the presidency?"
+    },
+    {
+      id:"G1-023",
+      cs:"CS 11",
+      skill:"Cause & Effect",
+      stem:"A constitutional amendment expands the number of people eligible to vote in national elections.",
+      prompt:"Which outcome is the most likely effect of expanding voter eligibility?",
+      choices:[
+        "A larger portion of the population can participate in elections, potentially changing turnout and representation.",
+        "Federal courts gain the power to write election laws without legislative involvement.",
+        "Political parties are banned because elections become nonpartisan by law.",
+        "State governments lose all authority to manage election procedures."
+      ],
+      answerIndex:0,
+      explanation:"Expanding eligibility increases the potential electorate and can affect participation and representation.",
+      hint:"More eligible voters → participation/representation changes."
+    },
+    {
+      id:"G1-024",
+      cs:"CS 12",
+      skill:"Cause & Effect",
+      stem:"After losing an election, a political party analyzes why it failed to win support among key groups of voters.",
+      prompt:"Which action would most directly help the party compete more effectively in the next election?",
+      choices:[
+        "Recruit candidates, refine messaging/platform positions, and organize voter outreach efforts.",
+        "Stop campaigning entirely to avoid future criticism and let voters decide on their own.",
+        "Ask courts to appoint party leaders to office to ensure representation.",
+        "Limit voter participation so fewer groups can influence election outcomes."
+      ],
+      answerIndex:0,
+      explanation:"Parties compete by organizing, recruiting candidates, building coalitions, and mobilizing voters.",
+      hint:"Parties gain power through elections—how do they rebuild support?"
+    },
+    {
+      id:"G1-025",
+      cs:"CS 13",
+      skill:"Cause & Effect",
+      stem:"An interest group meets with lawmakers to provide data, arguments, and policy proposals about a pending bill.",
+      prompt:"Which statement best explains the most likely purpose of this activity?",
+      choices:[
+        "To influence lawmakers’ decisions by shaping how they understand the issue and its consequences.",
+        "To replace elections by choosing which bills become laws without votes.",
+        "To eliminate the need for debate by preventing any opposition from speaking.",
+        "To transfer lawmaking power from legislatures to courts through lobbying."
+      ],
+      answerIndex:0,
+      explanation:"Lobbying aims to influence decisions by providing information, arguments, and political pressure/support.",
+      hint:"Lobbying influences decision-makers; it doesn’t replace lawmaking."
+    },
+    {
+      id:"G1-026",
+      cs:"CS 14",
+      skill:"Cause & Effect",
+      stem:"A student argues they can say anything at school at any time because of free speech rights.",
+      prompt:"Which statement best reflects the principle that rights are balanced with the rights of others and the common good?",
+      choices:[
+        "Some limits may apply when speech substantially disrupts learning or infringes on others’ rights.",
+        "Speech is never limited under any circumstances, including threats or harassment.",
+        "Only adults have free speech rights; students have none at school.",
+        "Rights can be removed permanently whenever someone disagrees with a viewpoint."
+      ],
+      answerIndex:0,
+      explanation:"Rights often have limits when exercising them harms others or undermines the functioning of a community setting like a school.",
+      hint:"Balance = rights + responsibilities + avoiding harm/disruption."
+    },
+    {
+      id:"G1-027",
+      cs:"CS 15",
+      skill:"Cause & Effect",
+      stem:"A speaker delivers an unpopular political message that does not threaten violence or target someone with a true threat.",
+      prompt:"Which outcome is most consistent with First Amendment principles in most situations?",
+      choices:[
+        "The speech is generally protected even when many people strongly disagree with it.",
+        "The government must ban the speech because it could offend the public.",
+        "Only popular viewpoints are protected; unpopular speech is unprotected.",
+        "The speaker must obtain government approval for the viewpoint before speaking."
+      ],
+      answerIndex:0,
+      explanation:"The First Amendment generally protects unpopular political speech unless it crosses specific legal limits (like true threats).",
+      hint:"Protection often includes unpopular viewpoints."
+    },
+    {
+      id:"G1-028",
+      cs:"CS 16",
+      skill:"Cause & Effect",
+      stem:"A state constitution includes protections for citizens that go beyond what the U.S. Constitution requires.",
+      prompt:"Which statement best explains why this is possible?",
+      choices:[
+        "States may provide additional protections as long as they do not violate the U.S. Constitution.",
+        "States can override the U.S. Constitution whenever state voters approve it.",
+        "State constitutions only apply to federal offices, not state government.",
+        "State constitutions are symbolic documents and do not create enforceable rights."
+      ],
+      answerIndex:0,
+      explanation:"States can expand protections beyond the federal minimum, but they cannot reduce protections below federal constitutional requirements.",
+      hint:"States can add protections, not override the U.S. Constitution."
+    },
+    {
+      id:"G1-029",
+      cs:"CS 17",
+      skill:"Cause & Effect",
+      stem:"A citizen wants to influence policy about road repairs in their town and a statewide education funding bill.",
+      prompt:"Which strategy best matches how local and state governments typically operate?",
+      choices:[
+        "Contact local officials for local services and contact state legislators for statewide laws and funding decisions.",
+        "Contact only federal officials for both issues because the federal government controls all policy.",
+        "Use a city council meeting to vote directly on statewide legislation.",
+        "Ask the Supreme Court to pass a local budget ordinance and approve state funding."
+      ],
+      answerIndex:0,
+      explanation:"Different levels handle different responsibilities; effective civic action targets the correct level and officials.",
+      hint:"Match the issue to the level that has authority."
+    },
+    {
+      id:"G1-030",
+      cs:"CS 18–19",
+      skill:"Cause & Effect",
+      stem:"A policy proposal draws attention from interest groups, the media, and citizens who contact officials and organize support or opposition.",
+      prompt:"Which outcome is most likely as a result of this activity?",
+      choices:[
+        "Public opinion and decision-makers may be influenced, potentially changing the proposal’s final form or whether it passes.",
+        "The proposal automatically becomes law without votes because public attention replaces lawmaking.",
+        "Compromise becomes impossible because only one side is allowed to participate.",
+        "Political discussion must stop because policy debates violate free speech protections."
+      ],
+      answerIndex:0,
+      explanation:"Organized participation can shape the policy process by influencing officials, public opinion, and the details of legislation.",
+      hint:"Influence can change outcomes, but it doesn’t bypass the process."
+    }
+  ];
 
-];
- 
-// =============================
-// GAME ENGINE
-// =============================
+  // =============================
+  // ELEMENTS
+  // =============================
+  const elNameGate = document.getElementById('nameGate');
+  const elStudentName = document.getElementById('studentName');
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
 
-const elName = document.getElementById("studentName");
-const btnStart = document.getElementById("btnStart");
-const btnRestart = document.getElementById("btnRestart");
-const gameArea = document.getElementById("gameArea");
+  const elKicker = document.getElementById('kicker');
+  const elStem = document.getElementById('stem');
+  const elPrompt = document.getElementById('prompt');
+  const elChoices = document.getElementById('choices');
 
-const elStem = document.getElementById("stem");
-const elPrompt = document.getElementById("prompt");
-const elChoices = document.getElementById("choices");
-const elMsg = document.getElementById("msgBox");
+  const elMsgBox = document.getElementById('msgBox');
+  const elMsgTitle = document.getElementById('msgTitle');
+  const elMsgBody = document.getElementById('msgBody');
 
-const stProg = document.getElementById("stProg");
-const stAcc = document.getElementById("stAcc");
-const stMiss = document.getElementById("stMiss");
-const stStart = document.getElementById("stStart");
-const stEnd = document.getElementById("stEnd");
-const codeBox = document.getElementById("codeBox");
+  const stName = document.getElementById('stName');
+  const stProg = document.getElementById('stProg');
+  const stAcc  = document.getElementById('stAcc');
+  const stAtt  = document.getElementById('stAtt');
+  const stStart= document.getElementById('stStart');
+  const stEnd  = document.getElementById('stEnd');
+  const stMastery = document.getElementById('stMastery');
 
-let idx=0, attempts=0, correct=0, misses=0;
-let startTime=null, endTime=null;
-let perQ = [];
+  const elCodeBox = document.getElementById('codeBox');
 
-function startGame(){
-  if(elName.value.trim().length<2) return;
-  document.getElementById("nameGate").style.display="none";
-  gameArea.style.display="block";
-  startTime=new Date();
-  stStart.textContent=startTime.toLocaleString();
-  perQ = questions.map(()=>({first:false,missed:false,solved:false}));
-  render();
-}
+  // =============================
+  // STATE
+  // =============================
+  let startISO = null;
+  let endISO = null;
 
-btnStart.addEventListener("click",startGame);
-btnRestart.addEventListener("click",()=>location.reload());
+  let idx = 0;
+  let attempts = 0;          // first-attempt submissions per question
+  let correct = 0;           // questions solved (eventually)
+  let misses = 0;            // questions missed on first attempt
+  const perQ = questions.map(() => ({ firstAttemptMade:false, missed:false, solved:false }));
 
-function render(){
-  const q=questions[idx];
-  elStem.textContent=q.stem;
-  elPrompt.textContent=q.prompt;
-  elChoices.innerHTML="";
-  q.choices.forEach((c,i)=>{
-    const b=document.createElement("button");
-    b.className="choiceBtn";
-    b.innerText=String.fromCharCode(65+i)+". "+c;
-    b.onclick=()=>choose(i);
-    elChoices.appendChild(b);
-  });
-  updateStats();
-}
+  function fmt(tsISO){
+    if(!tsISO) return "—";
+    const d = new Date(tsISO);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
 
-function choose(i){
-  const q=questions[idx];
-  const pq=perQ[idx];
-  if(!pq.first){attempts++; pq.first=true;}
-  if(i===q.answerIndex){
-    if(!pq.solved){pq.solved=true; correct++;}
+  function hashString(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16).toUpperCase();
+  }
+
+  function updateStats(){
+    stName.textContent = elStudentName.value.trim() || "—";
+    stProg.textContent = `${Math.min(correct, questions.length)} / ${questions.length}`;
+    const acc = attempts ? Math.round((correct / attempts) * 100) : 0;
+    stAcc.textContent = `${acc}%`;
+    stAtt.textContent = String(attempts);
+    stStart.textContent = fmt(startISO);
+    stEnd.textContent = fmt(endISO);
+
+    const allSolved = perQ.every(x => x.solved);
+    const mastery = allSolved && misses === 0;
+
+    if(mastery){
+      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
+      stMastery.style.color = "var(--good)";
+    } else {
+      stMastery.textContent = "Locked — finish all questions with 0 misses.";
+      stMastery.style.color = "var(--muted)";
+    }
+
+    if(mastery && endISO){
+      const name = elStudentName.value.trim();
+      const payload = `${name}|${startISO}|${endISO}|A${attempts}|C${correct}|M${misses}`;
+      const code = `GOV1-${hashString(payload)}-${attempts}${correct}${misses}`;
+      elCodeBox.style.display = "block";
+      elCodeBox.textContent =
+        `✅ SUBMIT CODE (copy/paste)\n\n` +
+        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
+        `${code}\n\n` +
+        `Note: If the code is missing, mastery is NOT complete.`;
+    } else {
+      elCodeBox.style.display = "none";
+      elCodeBox.textContent = "";
+    }
+  }
+
+  function setMsg(kind, title, body){
+    elMsgBox.className = `msg ${kind}`;
+    elMsgTitle.textContent = title;
+    elMsgBody.textContent = body;
+    elMsgBox.style.display = "block";
+  }
+
+  function clearMsg(){
+    elMsgBox.className = "msg";
+    elMsgTitle.textContent = "";
+    elMsgBody.textContent = "";
+    elMsgBox.style.display = "none";
+  }
+
+  function renderQuestion(){
+    clearMsg();
+
+    const q = questions[idx];
+
+    const ladderTag = (idx < 15) ? "STARTER" : "TEST MODE";
+    elKicker.textContent = `${ladderTag} • ${q.cs} • ${q.skill} • Question ${idx+1} of ${questions.length}`;
+    elStem.textContent = q.stem;
+    elPrompt.textContent = q.prompt;
+
+    elChoices.innerHTML = "";
+    q.choices.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.className = "choiceBtn";
+      b.type = "button";
+      b.textContent = `${String.fromCharCode(65+i)}. ${c}`;
+      b.addEventListener('click', () => choose(i));
+      elChoices.appendChild(b);
+    });
+
+    updateStats();
+  }
+
+  function nextQuestion(){
+    if(idx < questions.length - 1){
+      idx++;
+      renderQuestion();
+      return;
+    }
+
+    const allSolved = perQ.every(x => x.solved);
+    if(allSolved && misses === 0){
+      endISO = new Date().toISOString();
+      setMsg("good", "Mastery reached (100%)", "You finished every question with zero misses. Copy the Submit Code below.");
+      updateStats();
+    } else {
+      endISO = new Date().toISOString();
+      setMsg("warn", "End reached — Mastery NOT achieved",
+        `You finished the set, but you had ${misses} miss(es). Restart and aim for a perfect run (0 misses).`);
+      updateStats();
+    }
+  }
+
+  function choose(choiceIndex){
+    const q = questions[idx];
+    const pq = perQ[idx];
+
+    if(!pq.firstAttemptMade){
+      attempts++;
+      pq.firstAttemptMade = true;
+    }
+
+    const isCorrect = (choiceIndex === q.answerIndex);
+
+    if(isCorrect){
+      if(!pq.solved){
+        pq.solved = true;
+        correct++;
+      }
+
+      if(pq.missed){
+        setMsg("good", "Correct", "Moving to the next question.");
+        updateStats();
+        setTimeout(nextQuestion, 250);
+        return;
+      }
+
+      setMsg("good", "Correct (First Try)", q.explanation);
+      updateStats();
+      setTimeout(nextQuestion, 3000);
+      return;
+    }
+
     if(!pq.missed){
-      elMsg.className="msg good";
-      elMsg.innerText=q.explanation;
-      setTimeout(next,2000);
-    }else{
-      next();
+      pq.missed = true;
+      misses++;
     }
-  }else{
-    if(!pq.missed){pq.missed=true; misses++;}
-    elMsg.className="msg bad";
-    elMsg.innerText="Hint: "+q.hint;
+    setMsg("bad", "Not Yet", `Hint: ${q.hint}`);
+    updateStats();
   }
+
+  function startGame(){
+    const name = elStudentName.value.trim();
+    if(name.length < 2){
+      setMsg("warn","Name Required","Please enter your name to begin.");
+      return;
+    }
+
+    startISO = new Date().toISOString();
+    endISO = null;
+
+    btnRestart.disabled = false;
+    btnRestart.addEventListener('click', () => location.reload());
+
+    elStudentName.disabled = true;
+    btnStart.disabled = true;
+
+    idx = 0;
+    attempts = 0;
+    correct = 0;
+    misses = 0;
+    for(let i=0;i<perQ.length;i++){
+      perQ[i] = { firstAttemptMade:false, missed:false, solved:false };
+    }
+
+    renderQuestion();
+  }
+
+  btnStart.addEventListener('click', startGame);
+  elStudentName.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') startGame();
+  });
+
   updateStats();
-}
-
-function next(){
-  if(idx<questions.length-1){
-    idx++; elMsg.style.display="none"; render();
-  }else{
-    endTime=new Date();
-    stEnd.textContent=endTime.toLocaleString();
-    if(misses===0){
-      elMsg.className="msg good";
-      elMsg.innerText="Mastery Achieved!";
-      codeBox.style.display="block";
-      codeBox.innerText="Submit Code: GOV1-"+attempts+correct+misses;
-    }else{
-      elMsg.className="msg warn";
-      elMsg.innerText="Not Mastery. Restart for 100%.";
-    }
-  }
-}
-
-function updateStats(){
-  stProg.textContent=(idx+1)+" / "+questions.length;
-  stAcc.textContent=attempts?Math.round((correct/attempts)*100)+"%":"0%";
-  stMiss.textContent=misses;
-}
+})();
 </script>
 </body>
 </html>
