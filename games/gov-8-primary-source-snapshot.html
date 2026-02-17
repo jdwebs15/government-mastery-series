@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gov Game 8 — Primary Source Snapshot (Mastery)</title>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --line:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.40);
+      --radius:18px;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
+        linear-gradient(180deg, #0b1220, #070b14);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(1080px, 100%);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    h1{margin:0;font-size:18px;line-height:1.2}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:96ch}
+    .topRight{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(43,213,118,.38);
+      background:rgba(43,213,118,.14);
+      white-space:nowrap;
+    }
+    .btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ border-color:rgba(122,162,255,.35); }
+    button.primary{
+      border-color:rgba(122,162,255,.45);
+      background:rgba(122,162,255,.16);
+    }
+    button.danger{
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.14);
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap:14px;
+      padding:14px;
+    }
+    @media (max-width: 960px){
+      .grid{ grid-template-columns:1fr; }
+      .topRight{ align-items:flex-start; text-align:left; }
+      header{ flex-direction:column; }
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-weight:800;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .pill{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(122,162,255,.35);
+      background:rgba(122,162,255,.12);
+      white-space:nowrap;
+    }
+    .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
+    .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
+
+    .stim{
+      margin-top:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      border-radius:14px;
+      padding:12px;
+    }
+    .stimTitle{
+      font-weight:900;
+      letter-spacing:.08em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-size:12px;
+      margin-bottom:8px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .srcTag{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,209,102,.40);
+      background:rgba(255,209,102,.10);
+      color:var(--text);
+      white-space:nowrap;
+    }
+    .stimText{
+      white-space:pre-wrap;
+      line-height:1.38;
+      font-size:14px;
+    }
+
+    .answers{ margin-top:12px; display:grid; gap:10px; }
+    .opt{
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.14);
+      border-radius:14px;
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .opt input{ margin-top:3px; }
+    .opt label{ cursor:pointer; display:block; line-height:1.25; font-weight:650; }
+
+    .actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .msg{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+      display:none;
+    }
+    .msg.good{ display:block; border-color:rgba(43,213,118,.45); background:rgba(43,213,118,.10); }
+    .msg.bad{  display:block; border-color:rgba(255,92,122,.45); background:rgba(255,92,122,.10); }
+    .msg.warn{ display:block; border-color:rgba(255,209,102,.45); background:rgba(255,209,102,.10); }
+    .msg .title{ font-weight:900; margin-bottom:6px; }
+
+    .sideRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width: 170px;
+    }
+    .stat b{ color:var(--text); }
+
+    .nameGate{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+    }
+    input[type="text"]{
+      width:min(380px,100%);
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    input[type="text"]:focus{ border-color:rgba(122,162,255,.45); }
+
+    .footer{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .codeBox{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      display:none;
+      width:100%;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .errBox{
+      display:none;
+      margin:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,92,122,.55);
+      background:rgba(255,92,122,.10);
+    }
+    .errBox .t{ font-weight:900; margin-bottom:6px; }
+    .errBox pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="errBox" id="errBox">
+      <div class="t">On-page Error Box</div>
+      <pre id="errText"></pre>
+    </div>
+
+    <header>
+      <div>
+        <h1>Gov Game 8 — Primary Source Snapshot (Mastery)</h1>
+        <p class="sub">
+          Read a short primary-source excerpt, then answer an OST-style question (MCQ or Select-Two).
+          Retry allowed, but any wrong check records a miss. Mastery unlocks only if you finish all questions with <b>0 misses</b>.
+        </p>
+        <div class="nameGate">
+          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <div class="badge">MASTERy = 100%</div>
+        <div class="btnRow">
+          <button id="btnRestart" class="danger" disabled>Restart</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kicker" id="kicker">NOT STARTED</div>
+        <div class="stem" id="stem">Enter your name and click Start.</div>
+        <div class="prompt" id="prompt"></div>
+
+        <div class="stim" id="stimBox" style="display:none;">
+          <div class="stimTitle">
+            <span id="stimTitle">Primary Source</span>
+            <span class="srcTag" id="srcTag">—</span>
+          </div>
+          <div class="stimText" id="stimText"></div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="actions">
+          <button class="primary" id="btnCheck" disabled>Check</button>
+          <button id="btnClear" disabled>Clear</button>
+        </div>
+
+        <div class="msg" id="msgBox">
+          <div class="title" id="msgTitle"></div>
+          <div id="msgBody"></div>
+        </div>
+
+        <div class="codeBox" id="codeBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="kicker">STATS</div>
+
+        <div class="sideRow">
+          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
+          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
+          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
+          <div class="stat"><b>Misses:</b><br><span id="stMiss">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
+          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
+          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Mastery Status:</b><br>
+            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
+          </div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Rules:</b><br>
+            • “Attempt” counts the first time you click Check on a question.<br>
+            • If that check is wrong, it records a miss (retry allowed).<br>
+            • Mastery = finish all questions with 0 misses.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Legend Gov Series • Game 8 • Primary Source Snapshot</div>
+      <div>Tip: Identify the principle (rights, federalism, checks, policy tools) before choosing.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =============================
+  // HARDENED ERROR BOX
+  // =============================
+  const errBox = document.getElementById('errBox');
+  const errText = document.getElementById('errText');
+  function showError(e){
+    errBox.style.display = 'block';
+    errText.textContent = (e && e.stack) ? e.stack : String(e);
+  }
+  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
+
+  // =============================
+  // BANK (24) — short “snapshot” excerpts (paraphrased) + OST items
+  // type: "mcq" or "select2"; correct = [index] or [i,j]
+  // =============================
+  const questions = [
+    {
+      id:"G8-001", cs:"CS 6", type:"mcq",
+      src:"Federalist/Anti-Federalist Debate",
+      stimulus:`"A bill of rights is not merely unnecessary; it could be dangerous if people assume rights not listed are unprotected."`,
+      stem:"Which argument is most directly reflected in the excerpt?",
+      choices:[
+        "A Bill of Rights would strengthen state power over the federal government.",
+        "Listing some rights could imply other rights do not exist or are not protected.",
+        "The Constitution should create a monarchy to protect rights.",
+        "Rights come only from Congress and can be removed easily."
+      ],
+      correct:[1],
+      explanation:"Some Federalists argued listing rights could imply unlisted rights are not protected."
+    },
+    {
+      id:"G8-002", cs:"CS 8", type:"mcq",
+      src:"Bill of Rights (4th Amendment idea)",
+      stimulus:`"No search should occur without strong reason, and a neutral authority should authorize it—especially in private spaces and papers."`,
+      stem:"Which principle is most directly supported by the excerpt?",
+      choices:[
+        "Unlimited search powers for government",
+        "Probable cause and warrants to protect privacy",
+        "The right to bear arms",
+        "The right to vote at age 18"
+      ],
+      correct:[1],
+      explanation:"The 4th Amendment centers on warrants/probable cause to limit government searches."
+    },
+    {
+      id:"G8-003", cs:"CS 9", type:"mcq",
+      src:"Constitution (Supremacy/Federalism idea)",
+      stimulus:`"The Constitution and laws made under it are the supreme law, and judges must follow them even when state rules differ."`,
+      stem:"Which concept best matches the excerpt?",
+      choices:[
+        "Judicial activism",
+        "Supremacy of constitutional federal law",
+        "Nullification as a constitutional requirement",
+        "Direct democracy"
+      ],
+      correct:[1],
+      explanation:"Supremacy Clause: constitutional federal law prevails over conflicting state law."
+    },
+    {
+      id:"G8-004", cs:"CS 4–5", type:"mcq",
+      src:"Lawmaking Process",
+      stimulus:`"When a bill is examined in detail, revised, and debated in smaller groups before the full body votes, the proposal is more likely to be workable."`,
+      stem:"Which stage of lawmaking is most directly described?",
+      choices:[
+        "Committee review and markup",
+        "Presidential impeachment trial",
+        "Judicial sentencing",
+        "State ratification"
+      ],
+      correct:[0],
+      explanation:"Committees study and revise bills before floor debate."
+    },
+
+    {
+      id:"G8-005", cs:"CS 10", type:"mcq",
+      src:"Electoral College idea",
+      stimulus:`"The president is chosen through state-by-state results, not simply by counting all votes nationwide in one total."`,
+      stem:"Which conclusion is best supported by the excerpt?",
+      choices:[
+        "The national popular vote always determines the winner.",
+        "State outcomes and electoral votes can decide the winner even if the popular vote differs.",
+        "The Supreme Court chooses the president.",
+        "Only Congress votes for president."
+      ],
+      correct:[1],
+      explanation:"Because it’s state-based, the Electoral College can diverge from national popular vote totals."
+    },
+
+    {
+      id:"G8-006", cs:"CS 11", type:"select2",
+      src:"Voting Rights Expansion",
+      stimulus:`"A democracy grows stronger when barriers that keep qualified citizens from voting are removed."`,
+      stem:"Select TWO changes that directly removed barriers to voting.",
+      choices:[
+        "Banning poll taxes in federal elections",
+        "Lowering the voting age to 18",
+        "Creating a national religion",
+        "Requiring property ownership to vote"
+      ],
+      correct:[0,1],
+      explanation:"Removing poll taxes and lowering the voting age expanded access."
+    },
+
+    {
+      id:"G8-007", cs:"CS 18–19", type:"mcq",
+      src:"Public Policy Cycle",
+      stimulus:`"When a problem becomes widely discussed, leaders decide whether to act, propose solutions, and then test whether those solutions worked."`,
+      stem:"Which sequence best matches the excerpt?",
+      choices:[
+        "Agenda setting → Formulation → Adoption → Implementation/Evaluation",
+        "Implementation → Adoption → Agenda setting → Courts",
+        "Amendment → Treaty → War → Election",
+        "Evaluation → No action → No revision → End"
+      ],
+      correct:[0],
+      explanation:"Policy commonly moves from agenda → design → decision → implementation/evaluation."
+    },
+
+    {
+      id:"G8-008", cs:"CS 13", type:"select2",
+      src:"Interest Groups & Courts",
+      stimulus:`"Groups can influence how laws are applied by supporting cases and providing information to courts."`,
+      stem:"Select TWO methods that match the excerpt.",
+      choices:[
+        "Filing amicus briefs",
+        "Bringing strategic lawsuits",
+        "Printing money",
+        "Appointing senators"
+      ],
+      correct:[0,1],
+      explanation:"Amicus briefs and strategic lawsuits are common judicial influence methods."
+    },
+
+    {
+      id:"G8-009", cs:"CS 20", type:"mcq",
+      src:"Fiscal Policy",
+      stimulus:`"When people stop buying, government can increase spending or reduce taxes to encourage demand and support jobs."`,
+      stem:"Which tool is being described?",
+      choices:[
+        "Expansionary fiscal policy",
+        "Contractionary monetary policy",
+        "Judicial review",
+        "Federalism"
+      ],
+      correct:[0],
+      explanation:"Fiscal policy uses spending/taxes to affect demand and employment."
+    },
+
+    {
+      id:"G8-010", cs:"CS 21", type:"mcq",
+      src:"Monetary Policy",
+      stimulus:`"When borrowing becomes more expensive, businesses and consumers often slow spending, which can reduce inflation pressure."`,
+      stem:"Which Federal Reserve action best matches the excerpt?",
+      choices:[
+        "Raising interest rates",
+        "Lowering reserve requirements to expand credit",
+        "Increasing government spending",
+        "Passing a new constitutional amendment"
+      ],
+      correct:[0],
+      explanation:"Raising rates tightens borrowing and can slow demand/inflation."
+    },
+
+    // more snapshots to hit 24
+    {
+      id:"G8-011", cs:"CS 3", type:"mcq",
+      src:"Source Evaluation",
+      stimulus:`"Before believing a claim, compare it to the original document and check whether other credible outlets confirm it."`,
+      stem:"Which skill is most directly emphasized?",
+      choices:[
+        "Corroboration and use of primary sources",
+        "Propaganda creation",
+        "Guessing based on popularity",
+        "Ignoring all evidence"
+      ],
+      correct:[0],
+      explanation:"Comparing sources and checking primary evidence are key credibility skills."
+    },
+    {
+      id:"G8-012", cs:"CS 8", type:"select2",
+      src:"Rights in Criminal Trials",
+      stimulus:`"A fair trial requires that the accused can defend themselves and face the witnesses against them."`,
+      stem:"Select TWO rights most directly connected to the excerpt.",
+      choices:[
+        "Right to counsel",
+        "Right to confront witnesses",
+        "Right to bear arms",
+        "Freedom of the press"
+      ],
+      correct:[0,1],
+      explanation:"Counsel and confrontation are core 6th Amendment protections."
+    },
+    {
+      id:"G8-013", cs:"CS 5", type:"mcq",
+      src:"Checks & Balances",
+      stimulus:`"If one branch writes the rules and another branch enforces them, power is divided and abuse is harder."`,
+      stem:"Which principle is most directly described?",
+      choices:[
+        "Separation of powers",
+        "Direct democracy",
+        "State nullification",
+        "Isolationism"
+      ],
+      correct:[0],
+      explanation:"Dividing roles among branches is separation of powers."
+    },
+    {
+      id:"G8-014", cs:"CS 9", type:"mcq",
+      src:"Federalism",
+      stimulus:`"Some powers belong to the national government, some to states, and some are shared."`,
+      stem:"Which concept best fits the excerpt?",
+      choices:[
+        "Federalism",
+        "Monarchy",
+        "Judicial review",
+        "Martial law"
+      ],
+      correct:[0],
+      explanation:"Federalism is shared authority between national and state levels."
+    },
+    {
+      id:"G8-015", cs:"CS 4", type:"mcq",
+      src:"Lawmaking Gatekeeping",
+      stimulus:`"Most proposals never become law because they can be stopped at multiple gates before a final vote."`,
+      stem:"Which gate is most common early in the process?",
+      choices:[
+        "Committee action (or inaction)",
+        "Supreme Court sentencing",
+        "State ratification",
+        "UN approval"
+      ],
+      correct:[0],
+      explanation:"Many bills die in committee due to gatekeeping."
+    },
+    {
+      id:"G8-016", cs:"CS 10", type:"mcq",
+      src:"Campaign Strategy",
+      stimulus:`"Candidates often spend extra time and money where the outcome is uncertain and the electoral payoff is large."`,
+      stem:"Which term best describes the states implied by the excerpt?",
+      choices:[
+        "Swing states",
+        "Territories",
+        "One-party states by law",
+        "Foreign nations"
+      ],
+      correct:[0],
+      explanation:"Swing states are competitive and can decide the Electoral College."
+    },
+    {
+      id:"G8-017", cs:"CS 13", type:"mcq",
+      src:"Media & Public Opinion",
+      stimulus:`"As coverage increases, more people talk about the issue, and leaders feel pressure to respond."`,
+      stem:"Which concept is most directly described?",
+      choices:[
+        "Agenda setting",
+        "Judicial review",
+        "Nullification",
+        "Filibuster"
+      ],
+      correct:[0],
+      explanation:"Media attention can elevate issues onto the policy agenda."
+    },
+    {
+      id:"G8-018", cs:"CS 18–19", type:"select2",
+      src:"Policy Tradeoffs",
+      stimulus:`"A policy can solve one problem but create new costs or unintended effects."`,
+      stem:"Select TWO ideas that best match the excerpt.",
+      choices:[
+        "Cost–benefit analysis",
+        "Unintended consequences",
+        "Monarchy",
+        "Electoral vote allocation"
+      ],
+      correct:[0,1],
+      explanation:"Evaluating costs/benefits and unintended consequences is central to policy analysis."
+    },
+    {
+      id:"G8-019", cs:"CS 20", type:"mcq",
+      src:"Budget Tradeoffs",
+      stimulus:`"When spending rises faster than revenue, government borrowing often increases."`,
+      stem:"Which outcome best matches the excerpt?",
+      choices:[
+        "Larger deficits/debt",
+        "Automatic elimination of inflation",
+        "End of elections",
+        "No change to government finances"
+      ],
+      correct:[0],
+      explanation:"Higher spending without revenue increases can increase deficits and debt."
+    },
+    {
+      id:"G8-020", cs:"CS 21", type:"mcq",
+      src:"Federal Reserve Goal",
+      stimulus:`"By slowing spending, policymakers hope to cool rising prices over time."`,
+      stem:"Which goal is most directly described?",
+      choices:[
+        "Reducing inflation",
+        "Eliminating all taxes",
+        "Expanding voting rights",
+        "Creating new amendments"
+      ],
+      correct:[0],
+      explanation:"Tightening monetary conditions is commonly used to reduce inflation pressure."
+    },
+    {
+      id:"G8-021", cs:"CS 8", type:"mcq",
+      src:"Free Speech Limits",
+      stimulus:`"Rules can limit when and where speech happens, but they should not punish one viewpoint more than another."`,
+      stem:"Which standard is most directly described?",
+      choices:[
+        "Time, place, and manner restrictions (viewpoint-neutral)",
+        "Double jeopardy",
+        "Supremacy Clause",
+        "Electoral vote allocation"
+      ],
+      correct:[0],
+      explanation:"Viewpoint-neutral time/place/manner rules can be constitutional."
+    },
+    {
+      id:"G8-022", cs:"CS 9", type:"mcq",
+      src:"Reserved Powers",
+      stimulus:`"Powers not delegated to the national government remain with states or the people."`,
+      stem:"Which amendment is most directly referenced?",
+      choices:["1st","8th","10th","26th"],
+      correct:[2],
+      explanation:"The 10th Amendment addresses reserved powers."
+    },
+    {
+      id:"G8-023", cs:"CS 5", type:"mcq",
+      src:"Oversight",
+      stimulus:`"Lawmakers question agency leaders, demand records, and propose changes when programs are mismanaged."`,
+      stem:"Which power/practice is most directly described?",
+      choices:[
+        "Legislative oversight",
+        "Judicial sentencing",
+        "Executive veto",
+        "Electoral vote counting"
+      ],
+      correct:[0],
+      explanation:"Oversight is a legislative check that investigates and pressures reform."
+    },
+    {
+      id:"G8-024", cs:"CS 4–5", type:"select2",
+      src:"Checks on Executive",
+      stimulus:`"No one person should control lawmaking or enforcement without limits."`,
+      stem:"Select TWO checks on the executive branch.",
+      choices:[
+        "Congress overrides a veto with a supermajority",
+        "Courts declare an executive action unconstitutional",
+        "The president appoints cabinet members",
+        "The executive enforces laws"
+      ],
+      correct:[0,1],
+      explanation:"Congress and the courts provide major checks on executive power."
+    }
+  ];
+
+  // =============================
+  // ELEMENTS
+  // =============================
+  const elStudentName = document.getElementById('studentName');
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
+
+  const elKicker = document.getElementById('kicker');
+  const elStem = document.getElementById('stem');
+  const elPrompt = document.getElementById('prompt');
+
+  const stimBox = document.getElementById('stimBox');
+  const stimTitle = document.getElementById('stimTitle');
+  const srcTag = document.getElementById('srcTag');
+  const stimText = document.getElementById('stimText');
+
+  const elAnswers = document.getElementById('answers');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnClear = document.getElementById('btnClear');
+
+  const elMsgBox = document.getElementById('msgBox');
+  const elMsgTitle = document.getElementById('msgTitle');
+  const elMsgBody = document.getElementById('msgBody');
+
+  const stName = document.getElementById('stName');
+  const stProg = document.getElementById('stProg');
+  const stAcc  = document.getElementById('stAcc');
+  const stMiss = document.getElementById('stMiss');
+  const stAtt  = document.getElementById('stAtt');
+  const stStart= document.getElementById('stStart');
+  const stEnd  = document.getElementById('stEnd');
+  const stMastery = document.getElementById('stMastery');
+  const elCodeBox = document.getElementById('codeBox');
+
+  // =============================
+  // STATE
+  // =============================
+  let startISO=null, endISO=null;
+  let order = [];
+  let pos = 0;
+  let attempts = 0;
+  let solved = 0;
+  let misses = 0;
+
+  const perQ = questions.map(()=>({ checkedOnce:false, missed:false, solved:false }));
+
+  // =============================
+  // HELPERS
+  // =============================
+  function fmt(tsISO){
+    if(!tsISO) return "—";
+    const d = new Date(tsISO);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+  function hashString(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h>>>0).toString(16).toUpperCase();
+  }
+  function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function setMsg(kind,title,body){
+    elMsgBox.className = `msg ${kind}`;
+    elMsgTitle.textContent = title;
+    elMsgBody.textContent = body;
+    elMsgBox.style.display = "block";
+  }
+  function clearMsg(){
+    elMsgBox.className="msg";
+    elMsgTitle.textContent="";
+    elMsgBody.textContent="";
+    elMsgBox.style.display="none";
+  }
+
+  function updateStats(){
+    stName.textContent = elStudentName.value.trim() || "—";
+    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
+    const acc = attempts ? Math.round((solved/attempts)*100) : 0;
+    stAcc.textContent = `${acc}%`;
+    stMiss.textContent = String(misses);
+    stAtt.textContent = String(attempts);
+    stStart.textContent = fmt(startISO);
+    stEnd.textContent = fmt(endISO);
+
+    const allSolved = perQ.every(x=>x.solved);
+    const mastery = allSolved && misses===0;
+
+    if(mastery){
+      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
+      stMastery.style.color = "var(--good)";
+    } else {
+      stMastery.textContent = "Locked — finish all questions with 0 misses.";
+      stMastery.style.color = "var(--muted)";
+    }
+
+    if(mastery && endISO){
+      const name = elStudentName.value.trim();
+      const payload = `${name}|${startISO}|${endISO}|A${attempts}|S${solved}|M${misses}`;
+      const code = `GOV8-${hashString(payload)}-${attempts}${solved}${misses}`;
+      elCodeBox.style.display="block";
+      elCodeBox.textContent =
+        `✅ SUBMIT CODE (copy/paste)\n\n` +
+        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
+        `${code}\n\n` +
+        `Note: If the code is missing, mastery is NOT complete.`;
+    } else {
+      elCodeBox.style.display="none";
+      elCodeBox.textContent="";
+    }
+  }
+
+  function getCurrentIndex(){ return order[pos]; }
+  function getCurrentQ(){ return questions[getCurrentIndex()]; }
+
+  function clearSelections(){
+    const inputs = elAnswers.querySelectorAll('input');
+    inputs.forEach(i => i.checked = false);
+    clearMsg();
+  }
+
+  function renderQuestion(){
+    clearMsg();
+    const qi = getCurrentIndex();
+    const q = questions[qi];
+
+    const typeLabel = (q.type === "mcq") ? "MCQ" : "SELECT TWO";
+    elKicker.innerHTML = `
+      <span>PRIMARY SOURCE • ${q.cs} • Question ${pos+1} of ${questions.length}</span>
+      <span class="pill">${typeLabel}</span>
+    `;
+
+    stimBox.style.display = "block";
+    stimTitle.textContent = "Primary Source Snapshot";
+    srcTag.textContent = q.src || "Source";
+    stimText.textContent = q.stimulus;
+
+    elStem.textContent = q.stem;
+    elPrompt.textContent = (q.type === "select2")
+      ? "Directions: Select exactly TWO correct answers."
+      : "Directions: Select the best answer.";
+
+    // answers
+    elAnswers.innerHTML = "";
+    const groupName = `q_${q.id}`;
+
+    q.choices.forEach((c, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = "opt";
+
+      const input = document.createElement('input');
+      input.type = (q.type === "mcq") ? "radio" : "checkbox";
+      input.name = groupName;
+      input.id = `${groupName}_${i}`;
+      input.value = String(i);
+
+      const label = document.createElement('label');
+      label.htmlFor = input.id;
+      label.innerHTML = `<div><b>${String.fromCharCode(65+i)}.</b> ${c}</div>`;
+
+      wrap.appendChild(input);
+      wrap.appendChild(label);
+      elAnswers.appendChild(wrap);
+    });
+
+    btnCheck.disabled = false;
+    btnClear.disabled = false;
+
+    updateStats();
+  }
+
+  function getSelectedIndices(){
+    const checked = [...elAnswers.querySelectorAll('input:checked')];
+    return checked.map(x => parseInt(x.value, 10)).sort((a,b)=>a-b);
+  }
+  function arraysEqual(a,b){
+    if(a.length !== b.length) return false;
+    for(let i=0;i<a.length;i++) if(a[i] !== b[i]) return false;
+    return true;
+  }
+
+  function checkAnswer(){
+    const qi = getCurrentIndex();
+    const q = questions[qi];
+    const pq = perQ[qi];
+    const sel = getSelectedIndices();
+
+    if(q.type === "mcq" && sel.length !== 1){
+      setMsg("warn","Selection Required","Choose exactly ONE answer before checking.");
+      return;
+    }
+    if(q.type === "select2" && sel.length !== 2){
+      setMsg("warn","Selection Required","Select exactly TWO answers before checking.");
+      return;
+    }
+
+    if(!pq.checkedOnce){
+      attempts++;
+      pq.checkedOnce = true;
+    }
+
+    const correct = [...q.correct].slice().sort((a,b)=>a-b);
+    const isCorrect = arraysEqual(sel, correct);
+
+    if(!isCorrect){
+      if(!pq.missed){
+        pq.missed = true;
+        misses++;
+      }
+      setMsg("bad","Not Yet","Try again. Hint: Identify the *principle* the excerpt supports (rights, federalism, checks, policy tools).");
+      updateStats();
+      return;
+    }
+
+    if(!pq.solved){
+      pq.solved = true;
+      solved++;
+    }
+
+    if(pq.missed){
+      setMsg("good","Correct","Moving to the next question.");
+      updateStats();
+      setTimeout(nextQuestion, 250);
+    } else {
+      setMsg("good","Correct (First Try)", q.explanation || "Nice work—key idea matched to evidence.");
+      updateStats();
+      setTimeout(nextQuestion, 3000);
+    }
+  }
+
+  function nextQuestion(){
+    if(pos < order.length - 1){
+      pos++;
+      renderQuestion();
+      return;
+    }
+    endISO = new Date().toISOString();
+
+    const allSolved = perQ.every(x=>x.solved);
+    if(allSolved && misses===0){
+      setMsg("good","Mastery reached (100%)","You finished every snapshot with zero misses. Copy the Submit Code below.");
+    } else {
+      setMsg("warn","End reached — Mastery NOT achieved",
+        `You finished the set, but you had ${misses} miss(es). Restart for a perfect run (0 misses).`);
+    }
+
+    btnCheck.disabled = true;
+    btnClear.disabled = true;
+
+    updateStats();
+  }
+
+  function startGame(){
+    const name = elStudentName.value.trim();
+    if(name.length < 2){
+      setMsg("warn","Name Required","Please enter your name to begin.");
+      return;
+    }
+
+    startISO = new Date().toISOString();
+    endISO = null;
+
+    btnRestart.disabled = false;
+    btnRestart.onclick = () => location.reload();
+
+    elStudentName.disabled = true;
+    btnStart.disabled = true;
+
+    attempts = 0; solved = 0; misses = 0;
+    perQ.forEach(p => { p.checkedOnce=false; p.missed=false; p.solved=false; });
+
+    order = shuffle([...Array(questions.length)].map((_,i)=>i));
+    pos = 0;
+
+    renderQuestion();
+  }
+
+  btnStart.addEventListener('click', startGame);
+  elStudentName.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') startGame(); });
+
+  btnCheck.addEventListener('click', checkAnswer);
+  btnClear.addEventListener('click', clearSelections);
+
+  updateStats();
+})();
+</script>
+</body>
+</html>
