@@ -368,6 +368,24 @@
   // Each question: step1 cause, step1 choices (one correct),
   // then step2 prompt unlocked, then step3.
   // =============================
+  function rotateChoices(correctText, wrong1, wrong2, wrong3, rot){
+  const base = [correctText, wrong1, wrong2, wrong3];
+
+  // Put the correct answer at A/B/C/D by reordering the 4 choices
+  const orderMap = [
+    [0,1,2,3], // A
+    [1,0,2,3], // B
+    [1,2,0,3], // C
+    [1,2,3,0]  // D
+  ];
+
+  const ord = orderMap[rot % 4];
+  const out = ord.map(i => base[i]);
+  const answerIndex = out.indexOf(correctText);
+
+  return { choices: out, answerIndex };
+}
+
   const questions = [
     // STARTER (1–12)
     {
