@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gov Game 2 — Select Two (Mastery)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --line:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.40);
+      --radius:18px;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
+        linear-gradient(180deg, #0b1220, #070b14);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(980px, 100%);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    h1{margin:0;font-size:18px;line-height:1.2}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:78ch}
+    .topRight{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(43,213,118,.38);
+      background:rgba(43,213,118,.14);
+      white-space:nowrap;
+    }
+    .btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ border-color:rgba(122,162,255,.35); }
+    button.primary{
+      border-color:rgba(122,162,255,.45);
+      background:rgba(122,162,255,.16);
+    }
+    button.danger{
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.14);
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      padding:14px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns:1fr; }
+      .topRight{ align-items:flex-start; text-align:left; }
+      header{ flex-direction:column; }
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-weight:800;
+    }
+    .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
+    .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
+
+    .hintRow{
+      margin-top:10px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+    }
+    .pill b{color:var(--text)}
+
+    .choices{ margin-top:12px; display:grid; gap:10px; }
+    .choiceBtn{
+      text-align:left;
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      cursor:pointer;
+      color:var(--text);
+      font-weight:700;
+      line-height:1.25;
+      transition:transform .02s ease;
+    }
+    .choiceBtn:active{ transform:translateY(1px); }
+    .choiceBtn:hover{ border-color:rgba(122,162,255,.35); }
+    .choiceBtn.selected{
+      border-color:rgba(122,162,255,.60);
+      background:rgba(122,162,255,.14);
+    }
+
+    .msg{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+      display:none;
+    }
+    .msg.good{ display:block; border-color:rgba(43,213,118,.45); background:rgba(43,213,118,.10); }
+    .msg.bad{  display:block; border-color:rgba(255,92,122,.45); background:rgba(255,92,122,.10); }
+    .msg.warn{ display:block; border-color:rgba(255,209,102,.45); background:rgba(255,209,102,.10); }
+    .msg .title{ font-weight:900; margin-bottom:6px; }
+
+    .sideRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width: 160px;
+    }
+    .stat b{ color:var(--text); }
+
+    .nameGate{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+    }
+    input{
+      width:min(380px,100%);
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{ border-color:rgba(122,162,255,.45); }
+
+    .footer{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .codeBox{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      display:none;
+      width:100%;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .errBox{
+      display:none;
+      margin:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,92,122,.55);
+      background:rgba(255,92,122,.10);
+    }
+    .errBox .t{ font-weight:900; margin-bottom:6px; }
+    .errBox pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="errBox" id="errBox">
+      <div class="t">On-page Error Box</div>
+      <pre id="errText"></pre>
+    </div>
+
+    <header>
+      <div>
+        <h1>Gov Game 2 — Select Two (Mastery)</h1>
+        <p class="sub">
+          Pick <b>exactly TWO</b> answers. Ladder mode: Q1–15 starter reps • Q16–30 test-mode feel.
+          Mastery unlocks only if you finish all questions with <b>0 misses</b>.
+        </p>
+        <div class="nameGate" id="nameGate">
+          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <div class="badge">MASTERy = 100%</div>
+        <div class="btnRow">
+          <button id="btnRestart" class="danger" disabled>Restart</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kicker" id="kicker">NOT STARTED</div>
+        <div class="stem" id="stem">Enter your name and click Start.</div>
+        <div class="prompt" id="prompt"></div>
+
+        <div class="hintRow">
+          <div class="pill">Selected: <b id="selCount">0</b> / 2</div>
+          <div class="pill">Action: <b>Select Two</b></div>
+        </div>
+
+        <div class="choices" id="choices"></div>
+
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="primary" id="btnSubmit" disabled>Submit Two</button>
+          <button id="btnClear" disabled>Clear</button>
+        </div>
+
+        <div class="msg" id="msgBox">
+          <div class="title" id="msgTitle"></div>
+          <div id="msgBody"></div>
+        </div>
+
+        <div class="codeBox" id="codeBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="kicker">STATS</div>
+
+        <div class="sideRow">
+          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
+          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
+          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
+          <div class="stat"><b>Misses:</b><br><span id="stMiss">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
+          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
+          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Mastery Status:</b><br>
+            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Legend Gov Series • Game 2 • Select Two</div>
+      <div>Tip: If something breaks, the error box at the top will tell you where.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =============================
+  // HARDENED ERROR BOX
+  // =============================
+  const errBox = document.getElementById('errBox');
+  const errText = document.getElementById('errText');
+  function showError(e){
+    errBox.style.display = 'block';
+    errText.textContent = (e && e.stack) ? e.stack : String(e);
+  }
+  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
+
+  // =============================
+  // QUESTION BANK (30) — Select TWO
+  // answerIndices MUST be an array of TWO indices (0–3), sorted
+  // =============================
+  const questions = [
+    // -----------------------------
+    // Q1–15 STARTER-ALIGNED
+    // -----------------------------
+    {
+      id:"G2-001",
+      cs:"CS 1",
+      skill:"Select Two",
+      stem:"A group of students wants to influence a state law about graduation requirements.",
+      prompt:"Select TWO actions that are MOST likely to directly influence state lawmakers.",
+      choices:[
+        "Email or call members of the Ohio General Assembly with evidence-based arguments.",
+        "Testify at a committee hearing when the bill is being considered.",
+        "Ask the U.S. Supreme Court to write a new state law.",
+        "Attend a city zoning board meeting about local property rules."
+      ],
+      answerIndices:[0,1],
+      explanation:"State lawmakers are influenced most directly through constituent communication and testimony during the legislative process.",
+      hint:"Target the decision-makers and the moment when the bill is being debated."
+    },
+    {
+      id:"G2-002",
+      cs:"CS 1",
+      skill:"Select Two",
+      stem:"A citizen wants to create an effective civic action plan on a local issue.",
+      prompt:"Select TWO steps that best strengthen an action plan.",
+      choices:[
+        "Identify who has authority to decide the issue.",
+        "Use credible sources to support claims with evidence.",
+        "Rely mainly on rumors and emotional posts to persuade people.",
+        "Avoid learning about costs or consequences to keep the plan simple."
+      ],
+      answerIndices:[0,1],
+      explanation:"Effective civic action targets the correct decision-makers and uses credible evidence.",
+      hint:"Think: authority + evidence."
+    },
+    {
+      id:"G2-003",
+      cs:"CS 2",
+      skill:"Select Two",
+      stem:"Political parties seek influence in a democratic system.",
+      prompt:"Select TWO outcomes that are most likely when a party wins elections and holds office.",
+      choices:[
+        "The party can shape public policy through lawmaking and executive actions.",
+        "The party can appoint officials and set agendas within government structures.",
+        "The party can eliminate all elections to stay in power permanently.",
+        "The party can prevent citizens from expressing opposition."
+      ],
+      answerIndices:[0,1],
+      explanation:"Winning elections places party members in positions to set agendas and influence policy through governing.",
+      hint:"Office-holding leads to agenda-setting and policy-making."
+    },
+    {
+      id:"G2-004",
+      cs:"CS 3",
+      skill:"Select Two",
+      stem:"A student sees a political claim shared widely online.",
+      prompt:"Select TWO strategies that best help determine if the claim is reliable.",
+      choices:[
+        "Check multiple credible sources for confirmation and evidence.",
+        "Look for sourcing, data, and whether the outlet corrects errors.",
+        "Assume it is true because it has many likes and shares.",
+        "Use only one source that matches your opinion."
+      ],
+      answerIndices:[0,1],
+      explanation:"Credibility improves when claims are supported by evidence and verified across reliable sources.",
+      hint:"Evidence + cross-checking."
+    },
+    {
+      id:"G2-005",
+      cs:"CS 4",
+      skill:"Select Two",
+      stem:"Lawmakers negotiate to pass legislation.",
+      prompt:"Select TWO examples that best show compromise/negotiation.",
+      choices:[
+        "Two legislators change bill language to gain broader support.",
+        "A committee amends a bill to address concerns from multiple groups.",
+        "One side refuses any changes and ends all discussion.",
+        "A lawmaker ignores all stakeholders to avoid conflict."
+      ],
+      answerIndices:[0,1],
+      explanation:"Negotiation and compromise involve adjusting proposals to build agreement and secure votes.",
+      hint:"Look for give-and-take changes."
+    },
+    {
+      id:"G2-006",
+      cs:"CS 5",
+      skill:"Select Two",
+      stem:"The Constitution reflects foundational principles of government.",
+      prompt:"Select TWO statements that best describe checks and balances.",
+      choices:[
+        "Each branch can limit the power of the other branches.",
+        "Power is divided so no single branch dominates the government.",
+        "The executive branch makes laws without Congress.",
+        "Courts run elections and count votes."
+      ],
+      answerIndices:[0,1],
+      explanation:"Checks and balances and separation of powers prevent concentration of authority by allowing branches to restrain each other.",
+      hint:"Limits + divided power."
+    },
+    {
+      id:"G2-007",
+      cs:"CS 6",
+      skill:"Select Two",
+      stem:"Federalists and Anti-Federalists debated ratification.",
+      prompt:"Select TWO Anti-Federalist concerns that led to demanding a Bill of Rights.",
+      choices:[
+        "The new national government might threaten individual liberties without explicit limits.",
+        "A standing army and taxation powers could be abused by a strong central government.",
+        "State governments should be eliminated entirely.",
+        "The president should be allowed to create laws without Congress."
+      ],
+      answerIndices:[0,1],
+      explanation:"Anti-Federalists feared centralized power and demanded explicit protections for liberties and limits on government.",
+      hint:"Fear of concentrated federal power."
+    },
+    {
+      id:"G2-008",
+      cs:"CS 7",
+      skill:"Select Two",
+      stem:"Constitutional government changes through multiple mechanisms.",
+      prompt:"Select TWO ways the U.S. government has changed over time.",
+      choices:[
+        "Constitutional amendments that alter or add rules.",
+        "Supreme Court interpretations that shape how principles are applied.",
+        "Replacing elections with random selection for offices.",
+        "Allowing states to ignore the Constitution permanently."
+      ],
+      answerIndices:[0,1],
+      explanation:"Amendments and court interpretations are major ways constitutional practice evolves over time.",
+      hint:"Formal change + interpretation."
+    },
+    {
+      id:"G2-009",
+      cs:"CS 8",
+      skill:"Select Two",
+      stem:"The Bill of Rights protects civil liberties.",
+      prompt:"Select TWO protections that best match the Fourth Amendment.",
+      choices:[
+        "Protection against unreasonable searches and seizures.",
+        "Warrants generally require probable cause and particularity.",
+        "Right to remain silent during questioning.",
+        "Protection against cruel and unusual punishment."
+      ],
+      answerIndices:[0,1],
+      explanation:"The Fourth Amendment focuses on search/seizure limits and warrant requirements.",
+      hint:"Search/seizure + warrant rules."
+    },
+    {
+      id:"G2-010",
+      cs:"CS 8",
+      skill:"Select Two",
+      stem:"A suspect is questioned and pressured to confess.",
+      prompt:"Select TWO rights most directly connected to this situation.",
+      choices:[
+        "Protection against self-incrimination.",
+        "Right to counsel in criminal prosecutions.",
+        "Right to bear arms.",
+        "Protection from quartering soldiers."
+      ],
+      answerIndices:[0,1],
+      explanation:"The Fifth protects against compelled self-incrimination and the Sixth protects the right to counsel.",
+      hint:"Confession pressure + lawyer."
+    },
+    {
+      id:"G2-011",
+      cs:"CS 9",
+      skill:"Select Two",
+      stem:"Federalism creates shared authority between levels of government.",
+      prompt:"Select TWO statements that correctly describe the Supremacy Clause principle.",
+      choices:[
+        "Constitutional federal law overrides conflicting state law.",
+        "States must follow the U.S. Constitution even when state law differs.",
+        "State law always overrides federal law inside state borders.",
+        "Federal law is optional unless a state legislature approves it."
+      ],
+      answerIndices:[0,1],
+      explanation:"When federal law is constitutional, it is supreme over conflicting state law.",
+      hint:"Valid federal law wins conflicts."
+    },
+    {
+      id:"G2-012",
+      cs:"CS 10",
+      skill:"Select Two",
+      stem:"The Electoral College affects presidential elections.",
+      prompt:"Select TWO outcomes that are most likely because of the Electoral College system.",
+      choices:[
+        "Candidates focus more on competitive states where outcomes are uncertain.",
+        "Winning states translates into electoral votes toward the needed majority.",
+        "Presidents are always chosen directly by national popular vote totals.",
+        "Campaign strategy never depends on state-by-state results."
+      ],
+      answerIndices:[0,1],
+      explanation:"Electoral votes are awarded by state outcomes, so candidates prioritize swing states to build an electoral majority.",
+      hint:"State outcomes drive electoral strategy."
+    },
+    {
+      id:"G2-013",
+      cs:"CS 11",
+      skill:"Select Two",
+      stem:"Voting rights expanded over time through amendments and laws.",
+      prompt:"Select TWO effects that are most likely when voting rights are expanded to more groups.",
+      choices:[
+        "More citizens can participate, potentially changing turnout and representation.",
+        "Political parties may adjust strategies to reach newly eligible voters.",
+        "Elections are no longer needed because voting rights are expanded.",
+        "Courts replace voters as the main decision-makers in elections."
+      ],
+      answerIndices:[0,1],
+      explanation:"Expanding eligibility increases the electorate and changes political outreach and representation possibilities.",
+      hint:"Bigger electorate + strategy shifts."
+    },
+    {
+      id:"G2-014",
+      cs:"CS 12",
+      skill:"Select Two",
+      stem:"Political parties compete for power between elections.",
+      prompt:"Select TWO actions that parties commonly use to build support for future elections.",
+      choices:[
+        "Recruit candidates and organize campaigns.",
+        "Refine platform messaging to appeal to voters.",
+        "Eliminate voter participation to reduce competition.",
+        "Ask courts to appoint party leaders to office."
+      ],
+      answerIndices:[0,1],
+      explanation:"Parties build support through candidate recruitment, organization, and messaging to voters.",
+      hint:"Organization + outreach."
+    },
+    {
+      id:"G2-015",
+      cs:"CS 13",
+      skill:"Select Two",
+      stem:"Interest groups seek to influence policy without running candidates.",
+      prompt:"Select TWO common methods interest groups use to influence public policy.",
+      choices:[
+        "Lobbying elected officials with arguments and data.",
+        "Mobilizing members to contact decision-makers.",
+        "Counting electoral votes for presidential elections.",
+        "Issuing Supreme Court rulings."
+      ],
+      answerIndices:[0,1],
+      explanation:"Interest groups influence policy through lobbying and member mobilization rather than running candidates.",
+      hint:"Influence officials + mobilize supporters."
+    },
+
+    // -----------------------------
+    // Q16–30 TEST-MODE FEEL (released-modeled)
+    // -----------------------------
+    {
+      id:"G2-016",
+      cs:"CS 14",
+      skill:"Select Two",
+      stem:"Rights are balanced with responsibilities and the rights of others.",
+      prompt:"Select TWO situations that most clearly justify limits on a person’s actions in the name of others’ rights or the common good.",
+      choices:[
+        "Speech that substantially disrupts a school’s ability to function.",
+        "Actions that threaten or harm others’ safety.",
+        "Peaceful disagreement with a policy proposal.",
+        "Voting for a candidate others dislike."
+      ],
+      answerIndices:[0,1],
+      explanation:"Limits are most defensible when actions disrupt essential functions or threaten others’ safety/rights.",
+      hint:"Look for harm, threats, or major disruption."
+    },
+    {
+      id:"G2-017",
+      cs:"CS 15",
+      skill:"Select Two",
+      stem:"A community debates whether an unpopular speaker should be allowed to speak in a public park.",
+      prompt:"Select TWO statements most consistent with First Amendment principles in most situations.",
+      choices:[
+        "Unpopular viewpoints are generally protected unless they cross specific legal limits.",
+        "Government restrictions must follow clear rules and cannot target a viewpoint simply for being unpopular.",
+        "Speech can be banned whenever a majority finds it offensive.",
+        "Only speech that supports the government is protected."
+      ],
+      answerIndices:[0,1],
+      explanation:"The First Amendment generally protects unpopular speech; restrictions cannot be viewpoint-based without strong constitutional justification.",
+      hint:"Protection includes unpopular views; viewpoint discrimination is disfavored."
+    },
+    {
+      id:"G2-018",
+      cs:"CS 16",
+      skill:"Select Two",
+      stem:"State constitutions exist alongside the U.S. Constitution.",
+      prompt:"Select TWO statements that best describe how state constitutions operate within the federal system.",
+      choices:[
+        "They establish state government structures and powers.",
+        "They can provide rights protections beyond the federal minimum (without violating the U.S. Constitution).",
+        "They override the U.S. Constitution whenever a state votes to do so.",
+        "They apply only to foreign policy and national defense."
+      ],
+      answerIndices:[0,1],
+      explanation:"State constitutions create state government frameworks and may expand rights protections as long as they don’t conflict with federal constitutional requirements.",
+      hint:"States can add protections, not override federal supremacy."
+    },
+    {
+      id:"G2-019",
+      cs:"CS 17",
+      skill:"Select Two",
+      stem:"A citizen wants to influence a local ordinance and a statewide funding decision.",
+      prompt:"Select TWO actions that best match the appropriate level of government for each issue.",
+      choices:[
+        "Attend a city council meeting for the ordinance issue.",
+        "Contact a state representative/senator for statewide funding policy.",
+        "File a treaty request with the U.S. State Department for the ordinance.",
+        "Ask the President to issue an executive order for the local ordinance."
+      ],
+      answerIndices:[0,1],
+      explanation:"Local ordinances are decided locally; statewide funding is decided by state officials.",
+      hint:"Match authority to level: local vs state."
+    },
+    {
+      id:"G2-020",
+      cs:"CS 18",
+      skill:"Select Two",
+      stem:"A public policy proposal moves through stages before becoming law or regulation.",
+      prompt:"Select TWO steps that most commonly occur during the policy-making process.",
+      choices:[
+        "Officials debate options and consider costs/benefits or consequences.",
+        "Policy proposals are revised through negotiation, amendments, or compromise.",
+        "Courts automatically create policy without any proposal stage.",
+        "Foreign governments approve local policy decisions first."
+      ],
+      answerIndices:[0,1],
+      explanation:"Policy typically involves debate, analysis of consequences, and revision through negotiation before final decisions are made.",
+      hint:"Debate + revision are core policy steps."
+    },
+    {
+      id:"G2-021",
+      cs:"CS 19",
+      skill:"Select Two",
+      stem:"Interest groups and the media cover a controversial bill and encourage public involvement.",
+      prompt:"Select TWO effects that are most likely when this happens.",
+      choices:[
+        "Public pressure on officials may increase through calls, emails, and public commentary.",
+        "The final bill language may change as decision-makers respond to support and opposition.",
+        "The bill becomes law automatically without votes.",
+        "The Constitution requires the media to endorse one side."
+      ],
+      answerIndices:[0,1],
+      explanation:"Public and media attention increases pressure and can change bill outcomes or details, but it does not bypass lawmaking.",
+      hint:"Influence can reshape outcomes; it doesn’t skip the process."
+    },
+    {
+      id:"G2-022",
+      cs:"CS 20",
+      skill:"Select Two",
+      stem:"Fiscal policy involves government decisions about taxing and spending.",
+      prompt:"Select TWO examples that best fit fiscal policy actions.",
+      choices:[
+        "Congress increases government spending on infrastructure projects.",
+        "Government reduces taxes to increase consumer spending power.",
+        "The Federal Reserve raises interest rates to slow inflation.",
+        "The Federal Reserve buys securities to increase the money supply."
+      ],
+      answerIndices:[0,1],
+      explanation:"Fiscal policy = taxing and spending decisions (typically by Congress and the executive).",
+      hint:"Taxes/spending = fiscal; rates/money supply = monetary."
+    },
+    {
+      id:"G2-023",
+      cs:"CS 21",
+      skill:"Select Two",
+      stem:"Monetary policy is used to influence the money supply and economic conditions.",
+      prompt:"Select TWO actions that best represent monetary policy tools.",
+      choices:[
+        "Raising or lowering interest rates to influence borrowing and spending.",
+        "Buying or selling securities to change the money supply.",
+        "Passing a new income tax bracket law.",
+        "Increasing federal spending on new programs."
+      ],
+      answerIndices:[0,1],
+      explanation:"Monetary policy tools include interest rates and open market operations that affect the money supply and lending.",
+      hint:"Think: Fed tools, not taxes/spending."
+    },
+    {
+      id:"G2-024",
+      cs:"CS 8",
+      skill:"Select Two",
+      stem:"Police want to search a phone without a warrant after stopping a driver for speeding.",
+      prompt:"Select TWO Fourth Amendment concepts most relevant to evaluating whether the search is reasonable.",
+      choices:[
+        "Probable cause and warrant requirements (unless a valid exception applies).",
+        "Limits on unreasonable searches and seizures.",
+        "Protection against double jeopardy.",
+        "Right to a public trial by jury."
+      ],
+      answerIndices:[0,1],
+      explanation:"Fourth Amendment analysis focuses on unreasonable searches and the need for probable cause and (often) a warrant, depending on exceptions.",
+      hint:"Search reasonableness + warrants."
+    },
+    {
+      id:"G2-025",
+      cs:"CS 3",
+      skill:"Select Two",
+      stem:"Two news stories cover the same event but reach different conclusions.",
+      prompt:"Select TWO checks that best help a reader evaluate the differences.",
+      choices:[
+        "Identify each source’s evidence and whether claims are supported by verifiable facts.",
+        "Compare multiple credible outlets to see what is consistent across reporting.",
+        "Choose whichever headline is more dramatic because it must be true.",
+        "Assume the story matching your belief is automatically the most accurate."
+      ],
+      answerIndices:[0,1],
+      explanation:"Evaluating evidence quality and cross-checking credible reporting are key tools for assessing conflicting claims.",
+      hint:"Evidence + corroboration."
+    },
+    {
+      id:"G2-026",
+      cs:"CS 4",
+      skill:"Select Two",
+      stem:"A bill has enough support to pass only if key members’ concerns are addressed.",
+      prompt:"Select TWO actions most consistent with negotiation to build a coalition.",
+      choices:[
+        "Offer a revision that addresses specific objections while keeping the bill’s core purpose.",
+        "Add an amendment that secures support from an undecided group.",
+        "Refuse to meet with opponents to avoid compromise.",
+        "Cancel hearings to prevent any public input."
+      ],
+      answerIndices:[0,1],
+      explanation:"Coalitions are built through revisions and amendments that address concerns and gather votes.",
+      hint:"Look for changes designed to gain support."
+    },
+    {
+      id:"G2-027",
+      cs:"CS 5",
+      skill:"Select Two",
+      stem:"Checks and balances create branch interaction.",
+      prompt:"Select TWO examples of a check by one branch on another.",
+      choices:[
+        "The Senate confirms or rejects major executive appointments.",
+        "Courts can declare a law unconstitutional.",
+        "The President selects all members of Congress.",
+        "Congress writes court opinions in place of judges."
+      ],
+      answerIndices:[0,1],
+      explanation:"Confirmation power and judicial review are key checks that limit other branches’ actions.",
+      hint:"One branch limiting another."
+    },
+    {
+      id:"G2-028",
+      cs:"CS 6–7",
+      skill:"Select Two",
+      stem:"The Constitution has been shaped by both the ratification debate and later changes.",
+      prompt:"Select TWO statements that best connect the ratification debate to later constitutional change.",
+      choices:[
+        "Debate over protecting liberties contributed to adoption of the Bill of Rights.",
+        "The amendment process allows change over time without rewriting the entire Constitution.",
+        "The Constitution cannot change except by Supreme Court appointment of new presidents.",
+        "State governments can permanently nullify amendments they dislike."
+      ],
+      answerIndices:[0,1],
+      explanation:"The Bill of Rights grew from ratification concerns, and the amendment process enables structured change over time.",
+      hint:"Think: liberties + amendment process."
+    },
+    {
+      id:"G2-029",
+      cs:"CS 18–19",
+      skill:"Select Two",
+      stem:"A policy issue becomes widely debated in a community and state.",
+      prompt:"Select TWO actions that best represent meaningful civic participation in the policy process.",
+      choices:[
+        "Attending public meetings and providing evidence-based testimony or comments.",
+        "Contacting elected officials with clear arguments and proposed solutions.",
+        "Spreading unverified rumors to increase anger quickly.",
+        "Refusing to learn about costs or consequences to avoid complexity."
+      ],
+      answerIndices:[0,1],
+      explanation:"Meaningful civic participation targets decision-makers and uses evidence-based communication.",
+      hint:"Evidence + correct input points."
+    },
+    {
+      id:"G2-030",
+      cs:"CS 20–21",
+      skill:"Select Two",
+      stem:"A recession leads leaders to consider multiple economic tools.",
+      prompt:"Select TWO tools that match the correct policy type.",
+      choices:[
+        "Increase government spending to stimulate demand (fiscal).",
+        "Lower interest rates to encourage borrowing and investment (monetary).",
+        "Raise income taxes to immediately reduce consumer spending (monetary).",
+        "Buy bonds through Congress to directly expand the money supply (fiscal)."
+      ],
+      answerIndices:[0,1],
+      explanation:"Fiscal tools involve spending/taxes; monetary tools involve interest rates and money supply decisions by the Federal Reserve.",
+      hint:"Match tool to: Congress (fiscal) vs Fed (monetary)."
+    }
+  ];
+
+  // =============================
+  // ELEMENTS
+  // =============================
+  const elNameGate = document.getElementById('nameGate');
+  const elStudentName = document.getElementById('studentName');
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
+
+  const elKicker = document.getElementById('kicker');
+  const elStem = document.getElementById('stem');
+  const elPrompt = document.getElementById('prompt');
+  const elChoices = document.getElementById('choices');
+
+  const elSelCount = document.getElementById('selCount');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const btnClear = document.getElementById('btnClear');
+
+  const elMsgBox = document.getElementById('msgBox');
+  const elMsgTitle = document.getElementById('msgTitle');
+  const elMsgBody = document.getElementById('msgBody');
+
+  const stName = document.getElementById('stName');
+  const stProg = document.getElementById('stProg');
+  const stAcc  = document.getElementById('stAcc');
+  const stMiss = document.getElementById('stMiss');
+  const stStart= document.getElementById('stStart');
+  const stEnd  = document.getElementById('stEnd');
+  const stAtt  = document.getElementById('stAtt');
+  const stMastery = document.getElementById('stMastery');
+
+  const elCodeBox = document.getElementById('codeBox');
+
+  // =============================
+  // STATE
+  // =============================
+  let startISO = null;
+  let endISO = null;
+
+  let idx = 0;
+  let attempts = 0;     // first submission per question
+  let solved = 0;       // solved questions count
+  let misses = 0;       // questions missed on first submit
+
+  // per-question tracking
+  const perQ = questions.map(() => ({
+    firstSubmitMade:false,
+    missed:false,
+    solved:false
+  }));
+
+  // selection state for current question
+  let selected = new Set();
+
+  function fmt(tsISO){
+    if(!tsISO) return "—";
+    const d = new Date(tsISO);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+
+  function hashString(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16).toUpperCase();
+  }
+
+  function setMsg(kind, title, body){
+    elMsgBox.className = `msg ${kind}`;
+    elMsgTitle.textContent = title;
+    elMsgBody.textContent = body;
+    elMsgBox.style.display = "block";
+  }
+
+  function clearMsg(){
+    elMsgBox.className = "msg";
+    elMsgTitle.textContent = "";
+    elMsgBody.textContent = "";
+    elMsgBox.style.display = "none";
+  }
+
+  function updateControls(){
+    elSelCount.textContent = String(selected.size);
+    btnSubmit.disabled = (selected.size !== 2);
+    btnClear.disabled = (selected.size === 0);
+  }
+
+  function updateStats(){
+    stName.textContent = elStudentName.value.trim() || "—";
+    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
+
+    const acc = attempts ? Math.round((solved / attempts) * 100) : 0;
+    stAcc.textContent = `${acc}%`;
+
+    stMiss.textContent = String(misses);
+    stStart.textContent = fmt(startISO);
+    stEnd.textContent = fmt(endISO);
+    stAtt.textContent = String(attempts);
+
+    const allSolved = perQ.every(x => x.solved);
+    const mastery = allSolved && misses === 0;
+
+    if(mastery){
+      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
+      stMastery.style.color = "var(--good)";
+    } else {
+      stMastery.textContent = "Locked — finish all questions with 0 misses.";
+      stMastery.style.color = "var(--muted)";
+    }
+
+    if(mastery && endISO){
+      const name = elStudentName.value.trim();
+      const payload = `${name}|${startISO}|${endISO}|A${attempts}|S${solved}|M${misses}`;
+      const code = `GOV2-${hashString(payload)}-${attempts}${solved}${misses}`;
+      elCodeBox.style.display = "block";
+      elCodeBox.textContent =
+        `✅ SUBMIT CODE (copy/paste)\n\n` +
+        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
+        `${code}\n\n` +
+        `Note: If the code is missing, mastery is NOT complete.`;
+    } else {
+      elCodeBox.style.display = "none";
+      elCodeBox.textContent = "";
+    }
+  }
+
+  function renderQuestion(){
+    clearMsg();
+    selected = new Set();
+    updateControls();
+
+    const q = questions[idx];
+    const ladderTag = (idx < 15) ? "STARTER" : "TEST MODE";
+
+    elKicker.textContent = `${ladderTag} • ${q.cs} • ${q.skill} • Question ${idx+1} of ${questions.length}`;
+    elStem.textContent = q.stem;
+    elPrompt.textContent = q.prompt;
+
+    elChoices.innerHTML = "";
+    q.choices.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.type = "button";
+      b.className = "choiceBtn";
+      b.textContent = `${String.fromCharCode(65+i)}. ${c}`;
+
+      b.addEventListener('click', () => {
+        if(selected.has(i)){
+          selected.delete(i);
+          b.classList.remove('selected');
+        } else {
+          // limit to two selections
+          if(selected.size >= 2) return;
+          selected.add(i);
+          b.classList.add('selected');
+        }
+        updateControls();
+      });
+
+      elChoices.appendChild(b);
+    });
+
+    updateStats();
+  }
+
+  function arraysEqual2(a,b){
+    return a.length===2 && b.length===2 && a[0]===b[0] && a[1]===b[1];
+  }
+
+  function submitTwo(){
+    if(selected.size !== 2) return;
+
+    const q = questions[idx];
+    const pq = perQ[idx];
+
+    if(!pq.firstSubmitMade){
+      attempts++;
+      pq.firstSubmitMade = true;
+    }
+
+    const pick = Array.from(selected).sort((x,y)=>x-y);
+    const isCorrect = arraysEqual2(pick, q.answerIndices);
+
+    if(isCorrect){
+      if(!pq.solved){
+        pq.solved = true;
+        solved++;
+      }
+
+      if(pq.missed){
+        setMsg("good", "Correct", "Moving to the next question.");
+        updateStats();
+        setTimeout(nextQuestion, 250);
+        return;
+      }
+
+      setMsg("good", "Correct (First Try)", q.explanation);
+      updateStats();
+      setTimeout(nextQuestion, 3000);
+      return;
+    }
+
+    if(!pq.missed){
+      pq.missed = true;
+      misses++;
+    }
+
+    setMsg("bad", "Not Yet", `Hint: ${q.hint}`);
+    updateStats();
+  }
+
+  function clearSelection(){
+    selected = new Set();
+    // remove selected class from buttons
+    [...elChoices.querySelectorAll('.choiceBtn')].forEach(btn => btn.classList.remove('selected'));
+    updateControls();
+  }
+
+  function nextQuestion(){
+    if(idx < questions.length - 1){
+      idx++;
+      renderQuestion();
+      return;
+    }
+
+    const allSolved = perQ.every(x => x.solved);
+    endISO = new Date().toISOString();
+
+    if(allSolved && misses === 0){
+      setMsg("good", "Mastery reached (100%)", "You finished every question with zero misses. Copy the Submit Code below.");
+      updateStats();
+    } else {
+      setMsg("warn", "End reached — Mastery NOT achieved",
+        `You finished the set, but you had ${misses} miss(es). Restart and aim for a perfect run (0 misses).`);
+      updateStats();
+    }
+  }
+
+  function startGame(){
+    const name = elStudentName.value.trim();
+    if(name.length < 2){
+      setMsg("warn","Name Required","Please enter your name to begin.");
+      return;
+    }
+
+    startISO = new Date().toISOString();
+    endISO = null;
+
+    btnRestart.disabled = false;
+    btnRestart.onclick = () => location.reload();
+
+    elStudentName.disabled = true;
+    btnStart.disabled = true;
+
+    idx = 0;
+    attempts = 0;
+    solved = 0;
+    misses = 0;
+
+    for(let i=0;i<perQ.length;i++){
+      perQ[i].firstSubmitMade = false;
+      perQ[i].missed = false;
+      perQ[i].solved = false;
+    }
+
+    renderQuestion();
+  }
+
+  btnStart.addEventListener('click', startGame);
+  elStudentName.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') startGame(); });
+
+  btnSubmit.addEventListener('click', submitTwo);
+  btnClear.addEventListener('click', clearSelection);
+
+  updateStats();
+  updateControls();
+})();
+</script>
+</body>
+</html>
