@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gov Game 4 — Sequence / Turning Point (Mastery)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --line:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.40);
+      --radius:18px;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
+        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
+        linear-gradient(180deg, #0b1220, #070b14);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(1020px, 100%);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+    }
+    h1{margin:0;font-size:18px;line-height:1.2}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:90ch}
+    .topRight{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(43,213,118,.38);
+      background:rgba(43,213,118,.14);
+      white-space:nowrap;
+    }
+    .btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    button{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ border-color:rgba(122,162,255,.35); }
+    button.primary{
+      border-color:rgba(122,162,255,.45);
+      background:rgba(122,162,255,.16);
+    }
+    button.danger{
+      border-color:rgba(255,92,122,.45);
+      background:rgba(255,92,122,.14);
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:14px;
+      padding:14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+      .topRight{ align-items:flex-start; text-align:left; }
+      header{ flex-direction:column; }
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+    .kicker{
+      font-size:12px;
+      letter-spacing:.18em;
+      color:var(--muted);
+      text-transform:uppercase;
+      font-weight:800;
+    }
+    .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
+    .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
+
+    .drags{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+    .item{
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      border-radius:14px;
+      padding:12px;
+      font-weight:750;
+      line-height:1.25;
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      cursor:grab;
+      user-select:none;
+    }
+    .item:active{cursor:grabbing}
+    .handle{
+      width:22px; height:22px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      color:var(--muted);
+      flex:0 0 auto;
+      margin-top:1px;
+    }
+
+    .msg{
+      margin-top:12px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.22);
+      display:none;
+    }
+    .msg.good{ display:block; border-color:rgba(43,213,118,.45); background:rgba(43,213,118,.10); }
+    .msg.bad{  display:block; border-color:rgba(255,92,122,.45); background:rgba(255,92,122,.10); }
+    .msg.warn{ display:block; border-color:rgba(255,209,102,.45); background:rgba(255,209,102,.10); }
+    .msg .title{ font-weight:900; margin-bottom:6px; }
+
+    .sideRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:13px;
+      margin-top:10px;
+    }
+    .stat{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width: 170px;
+    }
+    .stat b{ color:var(--text); }
+
+    .nameGate{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+    }
+    input{
+      width:min(380px,100%);
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{ border-color:rgba(122,162,255,.45); }
+
+    .footer{
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .codeBox{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      display:none;
+      width:100%;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .errBox{
+      display:none;
+      margin:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,92,122,.55);
+      background:rgba(255,92,122,.10);
+    }
+    .errBox .t{ font-weight:900; margin-bottom:6px; }
+    .errBox pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--text);
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="errBox" id="errBox">
+      <div class="t">On-page Error Box</div>
+      <pre id="errText"></pre>
+    </div>
+
+    <header>
+      <div>
+        <h1>Gov Game 4 — Sequence / Turning Point (Mastery)</h1>
+        <p class="sub">
+          Drag the events into the correct order. Then answer the turning-point question. Ladder mode: Q1–12 starter reps • Q13–24 test-mode feel.
+          Mastery unlocks only if you finish all questions with <b>0 misses</b>.
+        </p>
+        <div class="nameGate" id="nameGate">
+          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
+          <button class="primary" id="btnStart">Start</button>
+          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
+        </div>
+      </div>
+
+      <div class="topRight">
+        <div class="badge">MASTERy = 100%</div>
+        <div class="btnRow">
+          <button id="btnRestart" class="danger" disabled>Restart</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="kicker" id="kicker">NOT STARTED</div>
+        <div class="stem" id="stem">Enter your name and click Start.</div>
+        <div class="prompt" id="prompt"></div>
+
+        <div class="kicker" style="margin-top:12px;">Drag to Sequence</div>
+        <div class="drags" id="drags"></div>
+
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="primary" id="btnCheckOrder" disabled>Check Order</button>
+        </div>
+
+        <div id="turningWrap" style="margin-top:14px; display:none;">
+          <div class="kicker">Turning Point</div>
+          <div class="prompt" id="turningPrompt"></div>
+          <div class="drags" id="turningChoices"></div>
+        </div>
+
+        <div class="msg" id="msgBox">
+          <div class="title" id="msgTitle"></div>
+          <div id="msgBody"></div>
+        </div>
+
+        <div class="codeBox" id="codeBox"></div>
+      </div>
+
+      <div class="card">
+        <div class="kicker">STATS</div>
+
+        <div class="sideRow">
+          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
+          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
+          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
+          <div class="stat"><b>Misses:</b><br><span id="stMiss">0</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
+          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
+          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>Mastery Status:</b><br>
+            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
+          </div>
+        </div>
+
+        <div class="sideRow" style="margin-top:12px;">
+          <div class="stat" style="min-width:100%;">
+            <b>How this game scores:</b><br>
+            • Each question has 2 parts: sequence + turning point.<br>
+            • First time you check and it's wrong = miss recorded (retry allowed).<br>
+            • Mastery requires 0 misses across all questions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Legend Gov Series • Game 4 • Sequence / Turning Point</div>
+      <div>Tip: Drag items by grabbing the left handle.</div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =============================
+  // HARDENED ERROR BOX
+  // =============================
+  const errBox = document.getElementById('errBox');
+  const errText = document.getElementById('errText');
+  function showError(e){
+    errBox.style.display = 'block';
+    errText.textContent = (e && e.stack) ? e.stack : String(e);
+  }
+  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
+
+  // =============================
+  // QUESTION BANK (24) — sequence (4 items) + turning point MCQ
+  // You said "Build Game 4" — I’m shipping a full working build with 24 items.
+  // If you want 30 later, say: "Expand Game 4 to 30."
+  // =============================
+  const questions = [
+    // STARTER (1–12)
+    {
+      id:"G4-001", cs:"CS 4", level:"STARTER",
+      stem:"A bill becomes a law through a series of steps.",
+      prompt:"Drag the steps into the most common order.",
+      items:[
+        "Bill introduced and assigned to committee",
+        "Committee hearing/markup and amendments",
+        "Full chamber vote (House/Senate)",
+        "Executive action (sign/veto) after both chambers pass"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is MOST likely to be a turning point where major changes to the bill are made?",
+      turningChoices:[
+        "Bill introduced and assigned to committee",
+        "Committee hearing/markup and amendments",
+        "Full chamber vote (House/Senate)",
+        "Executive action (sign/veto)"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Committees often shape bills through hearings, expert testimony, and amendments—this is where major revisions commonly happen.",
+      hint:"Where do amendments and negotiations usually occur?"
+    },
+    {
+      id:"G4-002", cs:"CS 18", level:"STARTER",
+      stem:"Public policy often develops from issue → proposal → decision.",
+      prompt:"Drag the sequence into a logical policy-making order.",
+      items:[
+        "A public problem is identified",
+        "Possible solutions are proposed and debated",
+        "Decision-makers choose a policy option",
+        "The policy is implemented and evaluated"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which stage is MOST likely to involve weighing costs/benefits and tradeoffs?",
+      turningChoices:[
+        "A public problem is identified",
+        "Possible solutions are proposed and debated",
+        "Decision-makers choose a policy option",
+        "The policy is implemented and evaluated"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Tradeoffs and cost/benefit thinking usually appear most clearly during proposal/debate as options are compared.",
+      hint:"Which stage compares multiple options?"
+    },
+    {
+      id:"G4-003", cs:"CS 1", level:"STARTER",
+      stem:"A student group wants to influence a city policy decision.",
+      prompt:"Drag the actions into an effective civic-action order.",
+      items:[
+        "Identify who has authority to decide the issue",
+        "Gather evidence/credible sources about the problem",
+        "Contact officials / speak at a public meeting",
+        "Follow up and monitor the decision and impact"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is MOST likely to determine whether the group targets the correct decision-makers?",
+      turningChoices:[
+        "Identify who has authority to decide the issue",
+        "Gather evidence/credible sources about the problem",
+        "Contact officials / speak at a public meeting",
+        "Follow up and monitor the decision and impact"
+      ],
+      turningAnswerIndex:0,
+      explanation:"If you target the wrong authority level, even strong arguments may not lead to policy change.",
+      hint:"Authority first."
+    },
+    {
+      id:"G4-004", cs:"CS 3", level:"STARTER",
+      stem:"A reader is trying to verify a political claim online.",
+      prompt:"Drag the evaluation steps into the best order.",
+      items:[
+        "Check for the claim’s original source",
+        "Cross-check with multiple credible outlets",
+        "Look for evidence/data supporting the claim",
+        "Decide whether the claim is reliable"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the key turning point that separates opinion from credible reporting?",
+      turningChoices:[
+        "Check for the claim’s original source",
+        "Cross-check with multiple credible outlets",
+        "Look for evidence/data supporting the claim",
+        "Decide whether the claim is reliable"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Evidence is the hinge: without verifiable support, a claim is just an assertion.",
+      hint:"What makes a claim testable/verify-able?"
+    },
+    {
+      id:"G4-005", cs:"CS 5", level:"STARTER",
+      stem:"A federal law conflicts with a state law.",
+      prompt:"Drag the reasoning into the correct constitutional sequence.",
+      items:[
+        "Determine whether the federal law is constitutional",
+        "Compare the federal law and the state law for conflict",
+        "Apply the Supremacy Clause if there is a conflict",
+        "Follow the law that is supreme in the conflict"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is MOST important before the Supremacy Clause applies?",
+      turningChoices:[
+        "Determine whether the federal law is constitutional",
+        "Compare the federal law and the state law for conflict",
+        "Apply the Supremacy Clause if there is a conflict",
+        "Follow the law that is supreme in the conflict"
+      ],
+      turningAnswerIndex:0,
+      explanation:"Supremacy applies to valid (constitutional) federal law; constitutionality is the gateway question.",
+      hint:"Supremacy depends on validity."
+    },
+    {
+      id:"G4-006", cs:"CS 6", level:"STARTER",
+      stem:"Ratification debates shaped adoption of the Bill of Rights.",
+      prompt:"Drag the historical logic into sequence.",
+      items:[
+        "Anti-Federalists warn about a strong central government",
+        "Calls increase for explicit protections of liberties",
+        "Federalists promise amendments to secure ratification",
+        "Bill of Rights is added to the Constitution"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which moment is the turning point that helps ratification move forward?",
+      turningChoices:[
+        "Anti-Federalists warn about a strong central government",
+        "Calls increase for explicit protections of liberties",
+        "Federalists promise amendments to secure ratification",
+        "Bill of Rights is added to the Constitution"
+      ],
+      turningAnswerIndex:2,
+      explanation:"The promise to add amendments helped win support for ratification even before the Bill of Rights existed.",
+      hint:"What changed minds before the rights were added?"
+    },
+    {
+      id:"G4-007", cs:"CS 7", level:"STARTER",
+      stem:"Constitutional government changes over time.",
+      prompt:"Drag the sequence showing how a Supreme Court decision can change practice.",
+      items:[
+        "A constitutional dispute reaches the courts",
+        "The Supreme Court interprets constitutional language",
+        "The ruling sets precedent for future cases",
+        "Government practices change to follow the precedent"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that creates a rule for later cases?",
+      turningChoices:[
+        "A constitutional dispute reaches the courts",
+        "The Supreme Court interprets constitutional language",
+        "The ruling sets precedent for future cases",
+        "Government practices change to follow the precedent"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Precedent is what makes the decision lasting and broadly influential.",
+      hint:"Which step affects the future, not just this case?"
+    },
+    {
+      id:"G4-008", cs:"CS 8", level:"STARTER",
+      stem:"A criminal case involves multiple constitutional protections.",
+      prompt:"Drag the steps in a typical criminal justice sequence.",
+      items:[
+        "Police investigation and evidence gathering",
+        "Arrest/charges filed",
+        "Trial with rights like counsel, jury, confrontation",
+        "Verdict and sentencing"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which phase is the turning point for Sixth Amendment trial rights?",
+      turningChoices:[
+        "Police investigation and evidence gathering",
+        "Arrest/charges filed",
+        "Trial with rights like counsel, jury, confrontation",
+        "Verdict and sentencing"
+      ],
+      turningAnswerIndex:2,
+      explanation:"The Sixth Amendment is primarily about trial protections—counsel, jury, confrontation, and speedy/public trial.",
+      hint:"Which phase is literally the trial?"
+    },
+    {
+      id:"G4-009", cs:"CS 9–10", level:"STARTER",
+      stem:"Presidential elections involve state and national processes.",
+      prompt:"Drag the election sequence into the typical order.",
+      items:[
+        "Voters cast ballots in the states",
+        "States allocate electoral votes based on results",
+        "Electors vote for president",
+        "Electoral votes are counted to determine the winner"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that translates state results into the outcome?",
+      turningChoices:[
+        "Voters cast ballots in the states",
+        "States allocate electoral votes based on results",
+        "Electors vote for president",
+        "Electoral votes are counted to determine the winner"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Allocation rules (often winner-take-all) convert state vote results into electoral votes that determine the election.",
+      hint:"Where does the vote become electoral votes?"
+    },
+    {
+      id:"G4-010", cs:"CS 11", level:"STARTER",
+      stem:"Voting rights expanded through constitutional amendments and laws.",
+      prompt:"Drag the logic into order showing how change happens.",
+      items:[
+        "A group is denied equal participation",
+        "Public pressure and political debate increase",
+        "A reform is adopted (amendment or law)",
+        "Participation and representation expand"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that changes the rules of participation?",
+      turningChoices:[
+        "A group is denied equal participation",
+        "Public pressure and political debate increase",
+        "A reform is adopted (amendment or law)",
+        "Participation and representation expand"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Legal reform is the pivot—rules change, enabling expanded participation.",
+      hint:"Which step changes the rules?"
+    },
+    {
+      id:"G4-011", cs:"CS 20", level:"STARTER",
+      stem:"Fiscal policy is used to respond to economic conditions.",
+      prompt:"Drag the fiscal-policy logic into order.",
+      items:[
+        "Leaders identify an economic problem (recession or inflation)",
+        "Congress debates taxing/spending options",
+        "A budget/tax change is passed and signed",
+        "Economic effects appear over time (demand, jobs, prices)"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point where fiscal policy is officially enacted?",
+      turningChoices:[
+        "Leaders identify an economic problem (recession or inflation)",
+        "Congress debates taxing/spending options",
+        "A budget/tax change is passed and signed",
+        "Economic effects appear over time (demand, jobs, prices)"
+      ],
+      turningAnswerIndex:2,
+      explanation:"The policy becomes real when tax/spending changes are enacted through the legislative process and executive approval.",
+      hint:"When does it become law?"
+    },
+    {
+      id:"G4-012", cs:"CS 21", level:"STARTER",
+      stem:"Monetary policy is used to influence the economy.",
+      prompt:"Drag the monetary-policy action chain into order.",
+      items:[
+        "Economic indicators show inflation or recession risk",
+        "The Federal Reserve chooses a policy tool",
+        "Rates/money supply conditions change",
+        "Borrowing/spending shifts and the economy responds"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point where the Fed makes the key policy decision?",
+      turningChoices:[
+        "Economic indicators show inflation or recession risk",
+        "The Federal Reserve chooses a policy tool",
+        "Rates/money supply conditions change",
+        "Borrowing/spending shifts and the economy responds"
+      ],
+      turningAnswerIndex:1,
+      explanation:"The pivotal moment is the Fed choosing tools (rates/open market operations) in response to conditions.",
+      hint:"Where is the decision made?"
+    },
+
+    // TEST MODE (13–24)
+    {
+      id:"G4-013", cs:"CS 4", level:"TEST",
+      stem:"A bill is proposed and faces multiple procedural steps.",
+      prompt:"Drag the sequence into the most common order in a bicameral legislature.",
+      items:[
+        "Bill passes one chamber",
+        "Bill is considered by the other chamber",
+        "Conference/reconciliation if versions differ",
+        "Final approval then executive action"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is most likely the turning point if the House and Senate pass different versions?",
+      turningChoices:[
+        "Bill passes one chamber",
+        "Bill is considered by the other chamber",
+        "Conference/reconciliation if versions differ",
+        "Final approval then executive action"
+      ],
+      turningAnswerIndex:2,
+      explanation:"When versions differ, conference/reconciliation is where major negotiation occurs to produce one final bill.",
+      hint:"Where do differences get resolved?"
+    },
+    {
+      id:"G4-014", cs:"CS 18", level:"TEST",
+      stem:"A policy issue becomes controversial after a major event.",
+      prompt:"Drag the policy cycle into order as the issue rises on the agenda.",
+      items:[
+        "Focusing event increases attention",
+        "Officials place issue on the agenda",
+        "Policy options are debated and refined",
+        "Decision/implementation follows"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which stage is the turning point where officials decide the issue is urgent enough to address?",
+      turningChoices:[
+        "Focusing event increases attention",
+        "Officials place issue on the agenda",
+        "Policy options are debated and refined",
+        "Decision/implementation follows"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Agenda-setting is the key pivot: it determines whether the issue moves from concern to official action.",
+      hint:"Which step turns attention into action?"
+    },
+    {
+      id:"G4-015", cs:"CS 3", level:"TEST",
+      stem:"A claim spreads rapidly online after a breaking-news event.",
+      prompt:"Drag the verification process into the most effective order.",
+      items:[
+        "Pause and identify what exactly is being claimed",
+        "Check primary sources or official documents",
+        "Cross-check with multiple credible outlets",
+        "Share/accept only if evidence supports the claim"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that prevents misinformation from spreading?",
+      turningChoices:[
+        "Pause and identify what exactly is being claimed",
+        "Check primary sources or official documents",
+        "Cross-check with multiple credible outlets",
+        "Share/accept only if evidence supports the claim"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Primary sources are the most direct evidence; checking them is the strongest brake on misinformation.",
+      hint:"Go closest to the original evidence."
+    },
+    {
+      id:"G4-016", cs:"CS 5", level:"TEST",
+      stem:"A president vetoes a bill passed by Congress.",
+      prompt:"Drag the sequence that can follow into order.",
+      items:[
+        "President issues veto",
+        "Congress considers whether to override",
+        "If override succeeds, bill becomes law",
+        "If override fails, bill does not become law"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that can reverse the veto’s effect?",
+      turningChoices:[
+        "President issues veto",
+        "Congress considers whether to override",
+        "If override succeeds, bill becomes law",
+        "If override fails, bill does not become law"
+      ],
+      turningAnswerIndex:1,
+      explanation:"The override vote is the decisive check—Congress can still enact the law if it meets the threshold.",
+      hint:"Which step determines whether veto stands?"
+    },
+    {
+      id:"G4-017", cs:"CS 8", level:"TEST",
+      stem:"A court evaluates a search conducted without a warrant.",
+      prompt:"Drag the legal analysis into order.",
+      items:[
+        "Identify the search/seizure at issue",
+        "Ask whether probable cause existed",
+        "Ask whether a warrant or valid exception applies",
+        "Determine whether the search was reasonable"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that often decides the case?",
+      turningChoices:[
+        "Identify the search/seizure at issue",
+        "Ask whether probable cause existed",
+        "Ask whether a warrant or valid exception applies",
+        "Determine whether the search was reasonable"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Many Fourth Amendment cases turn on whether a warrant was required and whether a valid exception existed.",
+      hint:"Warrant vs exception is often the hinge."
+    },
+    {
+      id:"G4-018", cs:"CS 9", level:"TEST",
+      stem:"State and federal authority overlap in a federal system.",
+      prompt:"Drag the federalism reasoning into order.",
+      items:[
+        "Identify the level(s) of government involved",
+        "Determine enumerated/constitutional authority",
+        "Look for conflict between state and federal action",
+        "Apply supremacy or reserved powers as appropriate"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point for deciding which level has final authority in a conflict?",
+      turningChoices:[
+        "Identify the level(s) of government involved",
+        "Determine enumerated/constitutional authority",
+        "Look for conflict between state and federal action",
+        "Apply supremacy or reserved powers as appropriate"
+      ],
+      turningAnswerIndex:3,
+      explanation:"Supremacy/reserved powers application determines which authority controls once facts and conflict are established.",
+      hint:"Which step applies the rule?"
+    },
+    {
+      id:"G4-019", cs:"CS 10", level:"TEST",
+      stem:"An election is decided by the Electoral College.",
+      prompt:"Drag the outcome reasoning into order.",
+      items:[
+        "State results are certified",
+        "Electoral votes are allocated",
+        "Electors cast votes",
+        "Votes are tallied to determine the winner"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that can cause a popular-vote/electoral-vote mismatch?",
+      turningChoices:[
+        "State results are certified",
+        "Electoral votes are allocated",
+        "Electors cast votes",
+        "Votes are tallied to determine the winner"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Allocation rules translate state outcomes into electoral totals; that translation can differ from national popular totals.",
+      hint:"Where does translation happen?"
+    },
+    {
+      id:"G4-020", cs:"CS 13", level:"TEST",
+      stem:"An interest group wants to influence a bill’s language.",
+      prompt:"Drag the influence strategy into the most effective order.",
+      items:[
+        "Identify relevant committees and key legislators",
+        "Provide research/arguments and propose specific language",
+        "Mobilize members/constituents to contact decision-makers",
+        "Adjust strategy based on feedback and votes"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that most directly changes the bill’s content?",
+      turningChoices:[
+        "Identify relevant committees and key legislators",
+        "Provide research/arguments and propose specific language",
+        "Mobilize members/constituents to contact decision-makers",
+        "Adjust strategy based on feedback and votes"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Proposing and negotiating specific language is the most direct path to changing the bill’s content.",
+      hint:"Which action changes text?"
+    },
+    {
+      id:"G4-021", cs:"CS 18–19", level:"TEST",
+      stem:"A controversial policy faces strong public support and opposition.",
+      prompt:"Drag the policy interaction sequence into order.",
+      items:[
+        "Media coverage increases public awareness",
+        "Officials receive pressure and testimony",
+        "Policy proposals are revised through compromise",
+        "A final decision is made"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point where outcomes most often shift?",
+      turningChoices:[
+        "Media coverage increases public awareness",
+        "Officials receive pressure and testimony",
+        "Policy proposals are revised through compromise",
+        "A final decision is made"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Outcomes often shift when proposals are revised—compromise can change who supports the policy and what it contains.",
+      hint:"Where do revisions happen?"
+    },
+    {
+      id:"G4-022", cs:"CS 20", level:"TEST",
+      stem:"Leaders debate responses to inflation.",
+      prompt:"Drag the fiscal-policy pathway into order.",
+      items:[
+        "Inflation rises and purchasing power falls",
+        "Officials consider reducing demand through taxing/spending changes",
+        "A fiscal package is enacted",
+        "Demand and prices adjust over time"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point where fiscal policy moves from debate to action?",
+      turningChoices:[
+        "Inflation rises and purchasing power falls",
+        "Officials consider reducing demand through taxing/spending changes",
+        "A fiscal package is enacted",
+        "Demand and prices adjust over time"
+      ],
+      turningAnswerIndex:2,
+      explanation:"Enactment is the key pivot—until a package is passed/signed, it’s only a proposal.",
+      hint:"When is it actually implemented?"
+    },
+    {
+      id:"G4-023", cs:"CS 21", level:"TEST",
+      stem:"The Federal Reserve responds to recession risk.",
+      prompt:"Drag the monetary-policy impact chain into order.",
+      items:[
+        "Fed lowers policy rates / eases conditions",
+        "Borrowing becomes cheaper",
+        "Businesses/consumers increase spending/investment",
+        "Economic activity rises over time"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point action taken directly by the Federal Reserve?",
+      turningChoices:[
+        "Fed lowers policy rates / eases conditions",
+        "Borrowing becomes cheaper",
+        "Businesses/consumers increase spending/investment",
+        "Economic activity rises over time"
+      ],
+      turningAnswerIndex:0,
+      explanation:"The Fed’s direct action is changing monetary conditions; downstream steps are effects on borrowing and spending.",
+      hint:"Which step is the Fed's action?"
+    },
+    {
+      id:"G4-024", cs:"CS 7", level:"TEST",
+      stem:"An amendment is proposed and ratified.",
+      prompt:"Drag the amendment process into the most common order.",
+      items:[
+        "Proposal by Congress or convention",
+        "Ratification by states",
+        "Amendment becomes part of Constitution",
+        "Government practice adjusts to new rule"
+      ],
+      order:[0,1,2,3],
+      turningPrompt:"Which step is the turning point that makes the amendment officially binding?",
+      turningChoices:[
+        "Proposal by Congress or convention",
+        "Ratification by states",
+        "Amendment becomes part of Constitution",
+        "Government practice adjusts to new rule"
+      ],
+      turningAnswerIndex:1,
+      explanation:"Ratification is the threshold step required for an amendment to take effect.",
+      hint:"Which step hits the constitutional requirement?"
+    }
+  ];
+
+  // =============================
+  // ELEMENTS
+  // =============================
+  const elStudentName = document.getElementById('studentName');
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
+
+  const elKicker = document.getElementById('kicker');
+  const elStem = document.getElementById('stem');
+  const elPrompt = document.getElementById('prompt');
+
+  const elDrags = document.getElementById('drags');
+  const btnCheckOrder = document.getElementById('btnCheckOrder');
+
+  const turningWrap = document.getElementById('turningWrap');
+  const turningPrompt = document.getElementById('turningPrompt');
+  const turningChoices = document.getElementById('turningChoices');
+
+  const elMsgBox = document.getElementById('msgBox');
+  const elMsgTitle = document.getElementById('msgTitle');
+  const elMsgBody = document.getElementById('msgBody');
+
+  const stName = document.getElementById('stName');
+  const stProg = document.getElementById('stProg');
+  const stAcc  = document.getElementById('stAcc');
+  const stMiss = document.getElementById('stMiss');
+  const stAtt  = document.getElementById('stAtt');
+  const stStart= document.getElementById('stStart');
+  const stEnd  = document.getElementById('stEnd');
+  const stMastery = document.getElementById('stMastery');
+
+  const elCodeBox = document.getElementById('codeBox');
+
+  // =============================
+  // STATE
+  // =============================
+  let startISO=null, endISO=null;
+  let idx=0, attempts=0, solved=0, misses=0;
+
+  const perQ = questions.map(()=>({
+    checkedOnce:false,
+    missed:false,
+    solved:false,
+    turningAnswered:false
+  }));
+
+  // current draggable order (indices)
+  let currentOrder = [];
+  let dragFrom = null;
+
+  function fmt(tsISO){
+    if(!tsISO) return "—";
+    const d = new Date(tsISO);
+    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+  function hashString(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h>>>0).toString(16).toUpperCase();
+  }
+
+  function setMsg(kind,title,body){
+    elMsgBox.className = `msg ${kind}`;
+    elMsgTitle.textContent = title;
+    elMsgBody.textContent = body;
+    elMsgBox.style.display = "block";
+  }
+  function clearMsg(){
+    elMsgBox.className="msg";
+    elMsgTitle.textContent="";
+    elMsgBody.textContent="";
+    elMsgBox.style.display="none";
+  }
+
+  function updateStats(){
+    stName.textContent = elStudentName.value.trim() || "—";
+    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
+    const acc = attempts ? Math.round((solved/attempts)*100) : 0;
+    stAcc.textContent = `${acc}%`;
+    stMiss.textContent = String(misses);
+    stAtt.textContent = String(attempts);
+    stStart.textContent = fmt(startISO);
+    stEnd.textContent = fmt(endISO);
+
+    const allSolved = perQ.every(x=>x.solved);
+    const mastery = allSolved && misses===0;
+    if(mastery){
+      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
+      stMastery.style.color = "var(--good)";
+    } else {
+      stMastery.textContent = "Locked — finish all questions with 0 misses.";
+      stMastery.style.color = "var(--muted)";
+    }
+
+    if(mastery && endISO){
+      const name = elStudentName.value.trim();
+      const payload = `${name}|${startISO}|${endISO}|A${attempts}|S${solved}|M${misses}`;
+      const code = `GOV4-${hashString(payload)}-${attempts}${solved}${misses}`;
+      elCodeBox.style.display="block";
+      elCodeBox.textContent =
+        `✅ SUBMIT CODE (copy/paste)\n\n` +
+        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
+        `${code}\n\n` +
+        `Note: If the code is missing, mastery is NOT complete.`;
+    } else {
+      elCodeBox.style.display="none";
+      elCodeBox.textContent="";
+    }
+  }
+
+  function shuffleIndices(n){
+    const a = [...Array(n).keys()];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function renderDrags(){
+    elDrags.innerHTML = "";
+    const q = questions[idx];
+
+    currentOrder.forEach((itemIdx, pos)=>{
+      const div = document.createElement('div');
+      div.className = "item";
+      div.draggable = true;
+      div.dataset.pos = String(pos);
+
+      const h = document.createElement('div');
+      h.className = "handle";
+      h.textContent = "≡";
+      div.appendChild(h);
+
+      const t = document.createElement('div');
+      t.textContent = q.items[itemIdx];
+      div.appendChild(t);
+
+      div.addEventListener('dragstart', (e)=>{
+        dragFrom = pos;
+        e.dataTransfer.setData("text/plain", String(pos));
+      });
+      div.addEventListener('dragover', (e)=>e.preventDefault());
+      div.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        const from = Number(e.dataTransfer.getData("text/plain"));
+        const to = pos;
+        if(Number.isNaN(from) || from===to) return;
+        const tmp = currentOrder[from];
+        currentOrder[from] = currentOrder[to];
+        currentOrder[to] = tmp;
+        renderDrags();
+      });
+
+      elDrags.appendChild(div);
+    });
+  }
+
+  function renderTurning(){
+    const q = questions[idx];
+    turningPrompt.textContent = q.turningPrompt;
+    turningChoices.innerHTML = "";
+
+    q.turningChoices.forEach((c,i)=>{
+      const b = document.createElement('button');
+      b.type="button";
+      b.className="choiceBtn";
+      b.textContent = `${String.fromCharCode(65+i)}. ${c}`;
+      b.addEventListener('click', ()=>answerTurning(i));
+      turningChoices.appendChild(b);
+    });
+  }
+
+  function renderQuestion(){
+    clearMsg();
+    turningWrap.style.display = "none";
+    btnCheckOrder.disabled = false;
+
+    const q = questions[idx];
+    const tag = (idx < 12) ? "STARTER" : "TEST MODE";
+    elKicker.textContent = `${tag} • ${q.cs} • SEQUENCE • Question ${idx+1} of ${questions.length}`;
+    elStem.textContent = q.stem;
+    elPrompt.textContent = q.prompt;
+
+    currentOrder = shuffleIndices(q.items.length);
+    renderDrags();
+
+    updateStats();
+  }
+
+  function checkOrder(){
+    const q = questions[idx];
+    const pq = perQ[idx];
+
+    // attempt counts once per question when first checking order
+    if(!pq.checkedOnce){
+      attempts++;
+      pq.checkedOnce = true;
+    }
+
+    // evaluate sequence correctness
+    const isSeqCorrect = currentOrder.every((itemIdx, pos)=> itemIdx === q.order[pos]);
+
+    if(!isSeqCorrect){
+      if(!pq.missed){
+        pq.missed = true;
+        misses++;
+      }
+      setMsg("bad","Sequence Not Correct", `Hint: ${q.hint}`);
+      updateStats();
+      return;
+    }
+
+    // sequence correct -> move to turning point
+    setMsg("good","Sequence Correct", "Now answer the turning-point question.");
+    turningWrap.style.display = "block";
+    renderTurning();
+    updateStats();
+  }
+
+  function answerTurning(choiceIndex){
+    const q = questions[idx];
+    const pq = perQ[idx];
+
+    const isCorrect = (choiceIndex === q.turningAnswerIndex);
+
+    if(isCorrect){
+      pq.turningAnswered = true;
+      if(!pq.solved){
+        pq.solved = true;
+        solved++;
+      }
+
+      if(pq.missed){
+        setMsg("good","Correct", "Moving to the next question.");
+        updateStats();
+        setTimeout(nextQuestion, 250);
+        return;
+      }
+
+      setMsg("good","Correct (First Try)", q.explanation);
+      updateStats();
+      setTimeout(nextQuestion, 3000);
+      return;
+    }
+
+    if(!pq.missed){
+      pq.missed = true;
+      misses++;
+    }
+    setMsg("bad","Not Yet", `Hint: ${q.hint}`);
+    updateStats();
+  }
+
+  function nextQuestion(){
+    if(idx < questions.length - 1){
+      idx++;
+      renderQuestion();
+      return;
+    }
+    endISO = new Date().toISOString();
+    const allSolved = perQ.every(x=>x.solved);
+    if(allSolved && misses===0){
+      setMsg("good","Mastery reached (100%)","You finished every question with zero misses. Copy the Submit Code below.");
+    } else {
+      setMsg("warn","End reached — Mastery NOT achieved",
+        `You finished the set, but you had ${misses} miss(es). Restart for a perfect run (0 misses).`);
+    }
+    updateStats();
+  }
+
+  function startGame(){
+    const name = elStudentName.value.trim();
+    if(name.length < 2){
+      setMsg("warn","Name Required","Please enter your name to begin.");
+      return;
+    }
+
+    startISO = new Date().toISOString();
+    endISO = null;
+
+    btnRestart.disabled = false;
+    btnRestart.onclick = () => location.reload();
+
+    elStudentName.disabled = true;
+    btnStart.disabled = true;
+
+    idx=0; attempts=0; solved=0; misses=0;
+    for(const pq of perQ){
+      pq.checkedOnce=false; pq.missed=false; pq.solved=false; pq.turningAnswered=false;
+    }
+
+    renderQuestion();
+  }
+
+  btnStart.addEventListener('click', startGame);
+  elStudentName.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') startGame(); });
+
+  btnCheckOrder.addEventListener('click', checkOrder);
+
+  updateStats();
+})();
+</script>
+</body>
+</html>
