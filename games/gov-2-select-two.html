@@ -355,9 +355,6 @@
   // answerIndices MUST be an array of TWO indices (0–3), sorted
   // =============================
   const questions = [
-    // -----------------------------
-    // Q1–15 STARTER-ALIGNED
-    // -----------------------------
     {
       id:"G2-001",
       cs:"CS 1",
@@ -599,9 +596,6 @@
       hint:"Influence officials + mobilize supporters."
     },
 
-    // -----------------------------
-    // Q16–30 TEST-MODE FEEL (released-modeled)
-    // -----------------------------
     {
       id:"G2-016",
       cs:"CS 14",
@@ -847,7 +841,6 @@
   // =============================
   // ELEMENTS
   // =============================
-  const elNameGate = document.getElementById('nameGate');
   const elStudentName = document.getElementById('studentName');
   const btnStart = document.getElementById('btnStart');
   const btnRestart = document.getElementById('btnRestart');
@@ -895,7 +888,10 @@
   }));
 
   // selection state for current question
-  let selected = new Set();
+  let selected = new Set(); // stores ORIGINAL choice indices (0–3)
+
+  // per-question shuffle order: array of length 4 with original indices in display order
+  const orderByQ = questions.map(() => null);
 
   function fmt(tsISO){
     if(!tsISO) return "—";
@@ -971,6 +967,27 @@
     }
   }
 
+  // =============================
+  // SHUFFLE FIX (the bug you described)
+  // The first two *displayed* answers were always correct because correct ones were always indices [0,1].
+  // We now RANDOMIZE the display order per question, while scoring against ORIGINAL indices.
+  // =============================
+  function fisherYates(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function getOrderForQuestion(qIndex){
+    if(orderByQ[qIndex]) return orderByQ[qIndex];
+    // Randomize display order for this question ONCE per run
+    const base = [0,1,2,3];
+    orderByQ[qIndex] = fisherYates(base.slice());
+    return orderByQ[qIndex];
+  }
+
   function renderQuestion(){
     clearMsg();
     selected = new Set();
@@ -984,20 +1001,25 @@
     elPrompt.textContent = q.prompt;
 
     elChoices.innerHTML = "";
-    q.choices.forEach((c, i) => {
+
+    const order = getOrderForQuestion(idx); // array of original indices in display order
+
+    order.forEach((origIdx, displayPos) => {
+      const c = q.choices[origIdx];
       const b = document.createElement('button');
       b.type = "button";
       b.className = "choiceBtn";
-      b.textContent = `${String.fromCharCode(65+i)}. ${c}`;
+      b.dataset.orig = String(origIdx); // IMPORTANT: store original index for scoring
+      b.textContent = `${String.fromCharCode(65+displayPos)}. ${c}`;
 
       b.addEventListener('click', () => {
-        if(selected.has(i)){
-          selected.delete(i);
+        const o = Number(b.dataset.orig);
+        if(selected.has(o)){
+          selected.delete(o);
           b.classList.remove('selected');
         } else {
-          // limit to two selections
           if(selected.size >= 2) return;
-          selected.add(i);
+          selected.add(o);
           b.classList.add('selected');
         }
         updateControls();
@@ -1024,7 +1046,7 @@
       pq.firstSubmitMade = true;
     }
 
-    const pick = Array.from(selected).sort((x,y)=>x-y);
+    const pick = Array.from(selected).sort((x,y)=>x-y); // ORIGINAL indices
     const isCorrect = arraysEqual2(pick, q.answerIndices);
 
     if(isCorrect){
@@ -1057,7 +1079,6 @@
 
   function clearSelection(){
     selected = new Set();
-    // remove selected class from buttons
     [...elChoices.querySelectorAll('.choiceBtn')].forEach(btn => btn.classList.remove('selected'));
     updateControls();
   }
