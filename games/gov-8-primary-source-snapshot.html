@@ -392,10 +392,10 @@
   window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
 
   // =============================
-  // BANK (24) — snapshot excerpts + OST items
-  // type: "mcq" or "select2"; correct = [index] or [i,j]
+  // QUESTION BANK (24)
+  // correct indices refer to ORIGINAL order below
   // =============================
-  const questionsRaw = [
+  const questions = [
     {
       id:"G8-001", cs:"CS 6", type:"mcq",
       src:"Federalist/Anti-Federalist Debate",
@@ -729,59 +729,6 @@
     }
   ];
 
-  // ==========================================================
-  // FIX: FORCE ALL CORRECT ANSWERS TO BE A, B, OR A & B
-  // - MCQ correct index becomes 0 or 1 (we force to A unless already A/B)
-  // - SELECT2 correct indices become [0,1] (A & B) by moving correct choices to front
-  // ==========================================================
-  function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-  function normalizeBank(raw){
-    const bank = deepClone(raw);
-
-    for(const q of bank){
-      if(!Array.isArray(q.choices) || !Array.isArray(q.correct)) continue;
-
-      if(q.type === "mcq"){
-        const ci = q.correct[0];
-        // If already A or B, keep it (meets requirement). Otherwise move correct choice into A.
-        if(ci !== 0 && ci !== 1){
-          const choices = q.choices.slice();
-          // swap correct into index 0
-          const tmp = choices[0];
-          choices[0] = choices[ci];
-          choices[ci] = tmp;
-
-          q.choices = choices;
-          q.correct = [0];
-        }
-      }
-
-      if(q.type === "select2"){
-        // Move the two correct choices to the first two positions (A & B).
-        const corr = q.correct.slice().sort((a,b)=>a-b);
-        if(corr.length !== 2) continue;
-
-        const choices = q.choices.slice();
-        const chosen = [choices[corr[0]], choices[corr[1]]];
-
-        // add remaining choices in original order, skipping the two correct indices
-        const rest = [];
-        for(let i=0;i<choices.length;i++){
-          if(i === corr[0] || i === corr[1]) continue;
-          rest.push(choices[i]);
-        }
-
-        q.choices = chosen.concat(rest);
-        q.correct = [0,1];
-      }
-    }
-
-    return bank;
-  }
-
-  const questions = normalizeBank(questionsRaw);
-
   // =============================
   // ELEMENTS
   // =============================
@@ -828,6 +775,10 @@
 
   const perQ = questions.map(()=>({ checkedOnce:false, missed:false, solved:false }));
 
+  // For each question: displayMap[qi] = array of length choices.length
+  // where displayMap[qi][displayPos] = originalChoiceIndex
+  let displayMap = [];
+
   // =============================
   // HELPERS
   // =============================
@@ -848,7 +799,11 @@
     }
     return a;
   }
-
+  function arraysEqual(a,b){
+    if(a.length !== b.length) return false;
+    for(let i=0;i<a.length;i++) if(a[i] !== b[i]) return false;
+    return true;
+  }
   function setMsg(kind,title,body){
     elMsgBox.className = `msg ${kind}`;
     elMsgTitle.textContent = title;
@@ -862,6 +817,80 @@
     elMsgBox.style.display="none";
   }
 
+  // =============================
+  // BALANCED SHUFFLE (A/B/C/D)
+  // - Precompute once at Start so retries are stable
+  // - Bias correct answer positions to distribute evenly
+  // =============================
+  function buildDisplayMapsBalanced(){
+    displayMap = questions.map(q => q.choices.map((_,i)=>i)); // default identity
+    const mcqPosCounts = [0,0,0,0];      // how often the correct lands in A/B/C/D for MCQ
+    const selPosCounts = [0,0,0,0];      // how often a correct choice occupies A/B/C/D for Select2 (counts both)
+
+    function pickLeastUsedPos(counts, allowed){
+      let best = allowed[0];
+      for(const p of allowed){
+        if(counts[p] < counts[best]) best = p;
+      }
+      return best;
+    }
+
+    questions.forEach((q, qi) => {
+      const n = q.choices.length;
+      const originals = [...Array(n)].map((_,i)=>i);
+
+      if(q.type === "mcq"){
+        const correctOrig = q.correct[0];
+        const desiredPos = pickLeastUsedPos(mcqPosCounts, [0,1,2,3].slice(0,n));
+        const others = originals.filter(i => i !== correctOrig);
+        shuffle(others);
+
+        const perm = [];
+        for(let pos=0; pos<n; pos++){
+          if(pos === desiredPos) perm[pos] = correctOrig;
+          else perm[pos] = others.pop();
+        }
+        displayMap[qi] = perm;
+
+        if(desiredPos < 4) mcqPosCounts[desiredPos] += 1;
+      } else {
+        // select2
+        const corr = q.correct.slice().sort((a,b)=>a-b);
+        const c1 = corr[0], c2 = corr[1];
+
+        const allowedPositions = [0,1,2,3].slice(0,n);
+        const p1 = pickLeastUsedPos(selPosCounts, allowedPositions);
+
+        // pick second least-used among remaining positions
+        const remaining = allowedPositions.filter(p => p !== p1);
+        let p2 = remaining[0];
+        for(const p of remaining){
+          if(selPosCounts[p] < selPosCounts[p2]) p2 = p;
+        }
+
+        // Place the two correct originals into p1/p2, randomize which goes where
+        const correctPair = shuffle([c1, c2]);
+
+        const rest = originals.filter(i => i !== c1 && i !== c2);
+        shuffle(rest);
+
+        const perm = [];
+        for(let pos=0; pos<n; pos++){
+          if(pos === p1) perm[pos] = correctPair[0];
+          else if(pos === p2) perm[pos] = correctPair[1];
+          else perm[pos] = rest.pop();
+        }
+        displayMap[qi] = perm;
+
+        if(p1 < 4) selPosCounts[p1] += 1;
+        if(p2 < 4) selPosCounts[p2] += 1;
+      }
+    });
+  }
+
+  // =============================
+  // GAME HELPERS
+  // =============================
   function updateStats(){
     stName.textContent = elStudentName.value.trim() || "—";
     stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
@@ -929,22 +958,26 @@
       ? "Directions: Select exactly TWO correct answers."
       : "Directions: Select the best answer.";
 
+    // Render answers using the precomputed displayMap (stable for retries)
     elAnswers.innerHTML = "";
     const groupName = `q_${q.id}`;
+    const map = displayMap[qi] || q.choices.map((_,i)=>i);
 
-    q.choices.forEach((c, i) => {
+    map.forEach((origIndex, displayPos) => {
+      const c = q.choices[origIndex];
+
       const wrap = document.createElement('div');
       wrap.className = "opt";
 
       const input = document.createElement('input');
       input.type = (q.type === "mcq") ? "radio" : "checkbox";
       input.name = groupName;
-      input.id = `${groupName}_${i}`;
-      input.value = String(i);
+      input.id = `${groupName}_${displayPos}`;
+      input.value = String(displayPos); // NOTE: value is DISPLAY position
 
       const label = document.createElement('label');
       label.htmlFor = input.id;
-      label.innerHTML = `<div><b>${String.fromCharCode(65+i)}.</b> ${c}</div>`;
+      label.innerHTML = `<div><b>${String.fromCharCode(65+displayPos)}.</b> ${c}</div>`;
 
       wrap.appendChild(input);
       wrap.appendChild(label);
@@ -957,27 +990,28 @@
     updateStats();
   }
 
-  function getSelectedIndices(){
+  function getSelectedDisplayPositions(){
     const checked = [...elAnswers.querySelectorAll('input:checked')];
     return checked.map(x => parseInt(x.value, 10)).sort((a,b)=>a-b);
   }
-  function arraysEqual(a,b){
-    if(a.length !== b.length) return false;
-    for(let i=0;i<a.length;i++) if(a[i] !== b[i]) return false;
-    return true;
+
+  function displayPosToOrigIndex(qi, displayPos){
+    const map = displayMap[qi] || [];
+    return map[displayPos];
   }
 
   function checkAnswer(){
     const qi = getCurrentIndex();
     const q = questions[qi];
     const pq = perQ[qi];
-    const sel = getSelectedIndices();
 
-    if(q.type === "mcq" && sel.length !== 1){
+    const selDisplay = getSelectedDisplayPositions();
+
+    if(q.type === "mcq" && selDisplay.length !== 1){
       setMsg("warn","Selection Required","Choose exactly ONE answer before checking.");
       return;
     }
-    if(q.type === "select2" && sel.length !== 2){
+    if(q.type === "select2" && selDisplay.length !== 2){
       setMsg("warn","Selection Required","Select exactly TWO answers before checking.");
       return;
     }
@@ -987,8 +1021,11 @@
       pq.checkedOnce = true;
     }
 
-    const correct = [...q.correct].slice().sort((a,b)=>a-b);
-    const isCorrect = arraysEqual(sel, correct);
+    // Translate display selections back to ORIGINAL indices to compare with q.correct
+    const selOrig = selDisplay.map(dp => displayPosToOrigIndex(qi, dp)).sort((a,b)=>a-b);
+    const correctOrig = q.correct.slice().sort((a,b)=>a-b);
+
+    const isCorrect = arraysEqual(selOrig, correctOrig);
 
     if(!isCorrect){
       if(!pq.missed){
@@ -1057,8 +1094,12 @@
     attempts = 0; solved = 0; misses = 0;
     perQ.forEach(p => { p.checkedOnce=false; p.missed=false; p.solved=false; });
 
+    // Shuffle question order
     order = shuffle([...Array(questions.length)].map((_,i)=>i));
     pos = 0;
+
+    // Build stable, balanced A/B/C/D choice orders (once per run)
+    buildDisplayMapsBalanced();
 
     renderQuestion();
   }
