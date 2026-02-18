@@ -118,12 +118,7 @@
     .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
     .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
 
-    /* Chain UI */
-    .chain{
-      margin-top:12px;
-      display:grid;
-      gap:12px;
-    }
+    .chain{ margin-top:12px; display:grid; gap:12px; }
     .step{
       border:1px solid var(--line);
       border-radius:14px;
@@ -150,14 +145,8 @@
       color:var(--text);
       white-space:nowrap;
     }
-    .stepTxt{
-      font-weight:750;
-      line-height:1.25;
-    }
-    .choices{
-      display:grid;
-      gap:8px;
-    }
+    .stepTxt{ font-weight:750; line-height:1.25; }
+    .choices{ display:grid; gap:8px; }
     .choiceBtn{
       text-align:left;
       border:1px solid var(--line);
@@ -286,7 +275,7 @@
       </div>
 
       <div class="topRight">
-        <div class="badge">MASTERy = 100%</div>
+        <div class="badge">MASTERY = 100%</div>
         <div class="btnRow">
           <button id="btnRestart" class="danger" disabled>Restart</button>
         </div>
@@ -364,780 +353,638 @@
   window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
 
   // =============================
-  // QUESTION BANK (24) — Cause/Effect Chains
-  // Each question: step1 cause, step1 choices (one correct),
-  // then step2 prompt unlocked, then step3.
+  // SEEDED SHUFFLE (stable answer positions)
   // =============================
-  function rotateChoices(correctText, wrong1, wrong2, wrong3){
-  const arr = [correctText, wrong1, wrong2, wrong3];
-
-  // Fisher–Yates shuffle
-  for(let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  function fnv1a(str){
+    let h = 2166136261;
+    for(let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function mulberry32(seed){
+    return function(){
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function seededShuffle(arr, seedStr){
+    const a = arr.slice();
+    const rand = mulberry32(fnv1a(seedStr));
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(rand() * (i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
   }
 
-  return {
-    choices: arr,
-    answerIndex: arr.indexOf(correctText)
-  };
-}
+  // Build a step from (correct + wrongs), then shuffle choices and compute answerIndex
+  function makeStep(qid, stepNum, label, question, correct, wrongs, hint){
+    const seed = `${qid}-S${stepNum}`;
+    const shuffled = seededShuffle([correct, ...wrongs], seed);
+    return {
+      label,
+      question,
+      choices: shuffled,
+      answerIndex: shuffled.indexOf(correct),
+      hint
+    };
+  }
 
-
-  // Put the correct answer at A/B/C/D by reordering the 4 choices
-  const orderMap = [
-    [0,1,2,3], // A
-    [1,0,2,3], // B
-    [1,2,0,3], // C
-    [1,2,3,0]  // D
-  ];
-
-  const ord = orderMap[rot % 4];
-  const out = ord.map(i => base[i]);
-  const answerIndex = out.indexOf(correctText);
-
-  return { choices: out, answerIndex };
-}
-
-  const questions = [
-    // STARTER (1–12)
+  // =============================
+  // QUESTION BANK (24) — define as correct + wrongs (no answerIndex writing)
+  // =============================
+  const raw = [
     {
       id:"G6-001", cs:"CS 4", level:"STARTER",
       stem:"A bill is assigned to a committee.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is the most likely next step?",
-          choices:[
-            "Committee holds hearings and may amend/mark up the bill.",
-            "The president signs the bill into law immediately.",
-            "The Supreme Court rules on the bill’s constitutionality.",
-            "State governments vote to ratify the bill."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is the most likely next step?",
+          correct:"Committee holds hearings and may amend/mark up the bill.",
+          wrongs:["The president signs the bill into law immediately.","The Supreme Court rules on the bill’s constitutionality.","State governments vote to ratify the bill."],
           hint:"Committees often hold hearings and revise bills."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"After committee work is completed, what is most likely to happen?",
-          choices:[
-            "The bill is brought to the full chamber for debate/vote.",
-            "The bill becomes a constitutional amendment automatically.",
-            "The bill is enforced by the police immediately.",
-            "The bill is sent to local school boards for approval."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"After committee work is completed, what is most likely to happen?",
+          correct:"The bill is brought to the full chamber for debate/vote.",
+          wrongs:["The bill becomes a constitutional amendment automatically.","The bill is enforced by the police immediately.","The bill is sent to local school boards for approval."],
           hint:"Bills usually go from committee to the floor."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"If both chambers pass the bill, what is the next turning outcome?",
-          choices:[
-            "The bill goes to the executive to be signed or vetoed.",
-            "The bill is final without any executive involvement.",
-            "The bill must be approved by the UN before becoming law.",
-            "The bill replaces the Constitution."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"If both chambers pass the bill, what is the next turning outcome?",
+          correct:"The bill goes to the executive to be signed or vetoed.",
+          wrongs:["The bill is final without any executive involvement.","The bill must be approved by the UN before becoming law.","The bill replaces the Constitution."],
           hint:"Pass both chambers → executive action."
         }
       ],
       explanation:"Committee work shapes bills, floor votes pass them, and the executive signs/vetoes."
     },
+
     {
       id:"G6-002", cs:"CS 5", level:"STARTER",
       stem:"Congress passes a bill, but the president vetoes it.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is the most likely next step?",
-          choices:[
-            "Congress considers an override vote.",
-            "The Supreme Court automatically strikes the law down.",
-            "The bill becomes law anyway with no further action.",
-            "State governments re-write the bill."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is the most likely next step?",
+          correct:"Congress considers an override vote.",
+          wrongs:["The Supreme Court automatically strikes the law down.","The bill becomes law anyway with no further action.","State governments re-write the bill."],
           hint:"A veto returns the bill to Congress for possible override."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"If Congress successfully overrides, what happens?",
-          choices:[
-            "The bill becomes law despite the veto.",
-            "The bill is delayed until the next election only.",
-            "The bill must be ratified by states as an amendment.",
-            "The bill is rewritten into a court opinion."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"If Congress successfully overrides, what happens?",
+          correct:"The bill becomes law despite the veto.",
+          wrongs:["The bill is delayed until the next election only.","The bill must be ratified by states as an amendment.","The bill is rewritten into a court opinion."],
           hint:"Override = enacted."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"If Congress fails to override, what is the outcome?",
-          choices:[
-            "The bill does not become law.",
-            "The bill becomes law with reduced funding automatically.",
-            "The bill becomes a state law in all states.",
-            "The bill becomes a Supreme Court precedent."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"If Congress fails to override, what is the outcome?",
+          correct:"The bill does not become law.",
+          wrongs:["The bill becomes law with reduced funding automatically.","The bill becomes a state law in all states.","The bill becomes a Supreme Court precedent."],
           hint:"No override = veto stands."
         }
       ],
       explanation:"A veto creates a decision point: override succeeds → law; fails → no law."
     },
+
     {
       id:"G6-003", cs:"CS 3", level:"STARTER",
       stem:"A student reads a shocking claim on social media.",
       prompt:"Build the chain: what should they do next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is the best next step to verify the claim?",
-          choices:[
-            "Look for the original source or primary document.",
-            "Share it quickly before it gets deleted.",
-            "Assume it is true because it has many likes.",
-            "Only read the headline."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is the best next step to verify the claim?",
+          correct:"Look for the original source or primary document.",
+          wrongs:["Share it quickly before it gets deleted.","Assume it is true because it has many likes.","Only read the headline."],
           hint:"Go to the closest source of evidence."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"After finding the source, what is most important?",
-          choices:[
-            "Cross-check with multiple credible outlets.",
-            "Ignore other sources because one is enough.",
-            "Only ask friends if they agree.",
-            "Replace evidence with personal opinion."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"After finding the source, what is most important?",
+          correct:"Cross-check with multiple credible outlets.",
+          wrongs:["Ignore other sources because one is enough.","Only ask friends if they agree.","Replace evidence with personal opinion."],
           hint:"Corroboration increases reliability."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"If sources conflict, what is the best outcome step?",
-          choices:[
-            "Withhold judgment until evidence is clearer.",
-            "Choose whichever version is more exciting.",
-            "Assume the newest post is always correct.",
-            "Stop reading entirely."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"If sources conflict, what is the best outcome step?",
+          correct:"Withhold judgment until evidence is clearer.",
+          wrongs:["Choose whichever version is more exciting.","Assume the newest post is always correct.","Stop reading entirely."],
           hint:"When uncertain, don’t spread it."
         }
       ],
       explanation:"Credible evaluation = primary source → corroboration → careful conclusion."
     },
+
     {
       id:"G6-004", cs:"CS 9", level:"STARTER",
       stem:"A state law conflicts with a valid federal law.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What principle decides which law prevails?",
-          choices:[
-            "Supremacy Clause (valid federal law is supreme).",
-            "States always win conflicts with federal government.",
-            "The President decides with no limits.",
-            "Local governments decide for the whole country."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What principle decides which law prevails?",
+          correct:"Supremacy Clause (valid federal law is supreme).",
+          wrongs:["States always win conflicts with federal government.","The President decides with no limits.","Local governments decide for the whole country."],
           hint:"Conflict rule = Supremacy Clause."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What is the most likely next step if the conflict is challenged?",
-          choices:[
-            "Courts interpret and apply the Constitution to the conflict.",
-            "The conflict is ignored and both laws apply equally.",
-            "The law becomes a constitutional amendment automatically.",
-            "Only the media decides which is correct."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What is the most likely next step if the conflict is challenged?",
+          correct:"Courts interpret and apply the Constitution to the conflict.",
+          wrongs:["The conflict is ignored and both laws apply equally.","The law becomes a constitutional amendment automatically.","Only the media decides which is correct."],
           hint:"Courts resolve disputes."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"What is the likely outcome if the federal law is constitutional?",
-          choices:[
-            "The state law is invalid to the extent it conflicts.",
-            "The federal law disappears.",
-            "Both laws remain in force even if contradictory.",
-            "All states must rewrite their constitutions."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"What is the likely outcome if the federal law is constitutional?",
+          correct:"The state law is invalid to the extent it conflicts.",
+          wrongs:["The federal law disappears.","Both laws remain in force even if contradictory.","All states must rewrite their constitutions."],
           hint:"Valid federal law overrides conflicting state law."
         }
       ],
       explanation:"Supremacy + judicial review means constitutional federal law prevails over conflicting state law."
     },
+
     {
       id:"G6-005", cs:"CS 11", level:"STARTER",
       stem:"An amendment bans poll taxes in federal elections.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is the immediate effect of this change?",
-          choices:[
-            "A financial barrier to voting is removed.",
-            "The voting age automatically becomes 18.",
-            "Women lose the right to vote.",
-            "Presidents are elected by popular vote only."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is the immediate effect of this change?",
+          correct:"A financial barrier to voting is removed.",
+          wrongs:["The voting age automatically becomes 18.","Women lose the right to vote.","Presidents are elected by popular vote only."],
           hint:"Poll tax = money barrier."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What is a likely broader effect on participation?",
-          choices:[
-            "Voter participation increases among poorer citizens.",
-            "Voting becomes limited to property owners.",
-            "Elections are canceled.",
-            "Only Congress members can vote."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What is a likely broader effect on participation?",
+          correct:"Voter participation increases among poorer citizens.",
+          wrongs:["Voting becomes limited to property owners.","Elections are canceled.","Only Congress members can vote."],
           hint:"Removing barriers expands participation."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"Which idea best describes the long-term outcome?",
-          choices:[
-            "Expanded access to political participation and representation.",
-            "Fewer citizens can participate in elections.",
-            "Government becomes a monarchy.",
-            "The Constitution becomes shorter."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"Which idea best describes the long-term outcome?",
+          correct:"Expanded access to political participation and representation.",
+          wrongs:["Fewer citizens can participate in elections.","Government becomes a monarchy.","The Constitution becomes shorter."],
           hint:"Expansion of rights increases participation."
         }
       ],
       explanation:"Removing barriers (like poll taxes) expands voting access and democratic participation."
     },
+
     {
       id:"G6-006", cs:"CS 20", level:"STARTER",
       stem:"Congress passes a stimulus package during a recession.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is the intended short-term effect of stimulus?",
-          choices:[
-            "Increase demand and support jobs through spending/tax cuts.",
-            "Reduce demand to stop inflation immediately.",
-            "Eliminate the Federal Reserve.",
-            "Ban all imports."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is the intended short-term effect of stimulus?",
+          correct:"Increase demand and support jobs through spending/tax cuts.",
+          wrongs:["Reduce demand to stop inflation immediately.","Eliminate the Federal Reserve.","Ban all imports."],
           hint:"Stimulus = expansionary fiscal policy."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What is a likely economic response over time?",
-          choices:[
-            "Businesses hire/invest more as demand rises.",
-            "Demand collapses further by design.",
-            "Money supply is controlled only by states.",
-            "The Supreme Court sets interest rates."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What is a likely economic response over time?",
+          correct:"Businesses hire/invest more as demand rises.",
+          wrongs:["Demand collapses further by design.","Money supply is controlled only by states.","The Supreme Court sets interest rates."],
           hint:"Higher demand can increase production/employment."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"What is a possible tradeoff of stimulus?",
-          choices:[
-            "Higher budget deficits or increased debt.",
-            "Guaranteed zero inflation forever.",
-            "No effect on government finances.",
-            "Permanent elimination of taxes."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"What is a possible tradeoff of stimulus?",
+          correct:"Higher budget deficits or increased debt.",
+          wrongs:["Guaranteed zero inflation forever.","No effect on government finances.","Permanent elimination of taxes."],
           hint:"More spending / less revenue can increase deficits."
         }
       ],
       explanation:"Stimulus aims to boost demand and jobs but can increase deficits/debt."
     },
 
-    // TEST MODE (7–24) — tighter OST-ish
+    // TEST MODE 7–24 (same concept; shuffled automatically)
     {
       id:"G6-007", cs:"CS 8", level:"TEST",
       stem:"Police search a student’s phone without a warrant during an investigation.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"Which constitutional issue is most directly raised?",
-          choices:[
-            "4th Amendment — unreasonable search and seizure.",
-            "2nd Amendment — right to bear arms.",
-            "10th Amendment — reserved powers.",
-            "17th Amendment — direct election of senators."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"Which constitutional issue is most directly raised?",
+          correct:"4th Amendment — unreasonable search and seizure.",
+          wrongs:["2nd Amendment — right to bear arms.","10th Amendment — reserved powers.","17th Amendment — direct election of senators."],
           hint:"Phone search = search/seizure issue."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"If challenged, what question will likely matter most in court?",
-          choices:[
-            "Whether a warrant or valid exception applied.",
-            "Whether the student is registered to vote.",
-            "Whether Congress approved the search.",
-            "Whether the search happened on a weekday."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"If challenged, what question will likely matter most in court?",
+          correct:"Whether a warrant or valid exception applied.",
+          wrongs:["Whether the student is registered to vote.","Whether Congress approved the search.","Whether the search happened on a weekday."],
           hint:"Warrant vs exception is the hinge."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"If the search is ruled unconstitutional, what is a likely outcome?",
-          choices:[
-            "Some evidence may be excluded from trial.",
-            "The Constitution is rewritten.",
-            "The President becomes a judge.",
-            "All laws are canceled."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"If the search is ruled unconstitutional, what is a likely outcome?",
+          correct:"Some evidence may be excluded from trial.",
+          wrongs:["The Constitution is rewritten.","The President becomes a judge.","All laws are canceled."],
           hint:"Exclusion of unlawfully obtained evidence."
         }
       ],
       explanation:"4th Amendment analysis often turns on warrant/exception and can affect admissibility of evidence."
     },
+
     {
       id:"G6-008", cs:"CS 18–19", level:"TEST",
       stem:"A proposed policy gains attention after a crisis.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is most likely to happen as the issue rises?",
-          choices:[
-            "Officials place the issue on the policy agenda.",
-            "The policy is automatically adopted with no debate.",
-            "Courts immediately implement the policy.",
-            "Citizens lose voting rights."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is most likely to happen as the issue rises?",
+          correct:"Officials place the issue on the policy agenda.",
+          wrongs:["The policy is automatically adopted with no debate.","Courts immediately implement the policy.","Citizens lose voting rights."],
           hint:"Agenda-setting comes early."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"Once on the agenda, what comes next?",
-          choices:[
-            "Policy options are debated, drafted, and revised.",
-            "All states must ratify the policy.",
-            "The Constitution is suspended.",
-            "Only the media votes on the policy."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"Once on the agenda, what comes next?",
+          correct:"Policy options are debated, drafted, and revised.",
+          wrongs:["All states must ratify the policy.","The Constitution is suspended.","Only the media votes on the policy."],
           hint:"Formulation = drafting/revising options."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"Which outcome is most realistic after adoption?",
-          choices:[
-            "Implementation and evaluation of results/unintended effects.",
-            "Instant perfection with no side effects.",
-            "No enforcement mechanisms ever.",
-            "Automatic repeal of all other laws."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"Which outcome is most realistic after adoption?",
+          correct:"Implementation and evaluation of results/unintended effects.",
+          wrongs:["Instant perfection with no side effects.","No enforcement mechanisms ever.","Automatic repeal of all other laws."],
           hint:"Policies get implemented and evaluated."
         }
       ],
       explanation:"Policy moves through agenda → formulation → adoption → implementation/evaluation."
     },
+
     {
       id:"G6-009", cs:"CS 6", level:"TEST",
       stem:"Anti-Federalists warn that the new Constitution lacks protections for liberties.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is a likely immediate political result?",
-          choices:[
-            "Pressure increases to add amendments protecting rights.",
-            "The Constitution is repealed immediately.",
-            "States stop holding elections permanently.",
-            "Congress bans all newspapers."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is a likely immediate political result?",
+          correct:"Pressure increases to add amendments protecting rights.",
+          wrongs:["The Constitution is repealed immediately.","States stop holding elections permanently.","Congress bans all newspapers."],
           hint:"Concerns → demand for protections."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What promise helped secure ratification in several states?",
-          choices:[
-            "Federalists agree to add a Bill of Rights after ratification.",
-            "A king will lead the new government.",
-            "States will never have any power.",
-            "Courts will not exist."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What promise helped secure ratification in several states?",
+          correct:"Federalists agree to add a Bill of Rights after ratification.",
+          wrongs:["A king will lead the new government.","States will never have any power.","Courts will not exist."],
           hint:"Promise of amendments."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"What was the long-term outcome?",
-          choices:[
-            "The Bill of Rights was added to limit federal power and protect liberties.",
-            "All rights were removed from the Constitution.",
-            "Elections ended.",
-            "States left the union immediately."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"What was the long-term outcome?",
+          correct:"The Bill of Rights was added to limit federal power and protect liberties.",
+          wrongs:["All rights were removed from the Constitution.","Elections ended.","States left the union immediately."],
           hint:"Bill of Rights adopted."
         }
       ],
       explanation:"Anti-Federalist critiques helped produce the Bill of Rights as added protections."
     },
+
     {
       id:"G6-010", cs:"CS 21", level:"TEST",
       stem:"The Federal Reserve raises interest rates.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What is a likely immediate effect on borrowing?",
-          choices:[
-            "Borrowing becomes more expensive.",
-            "Borrowing becomes free.",
-            "Congress sets all bank loans directly.",
-            "Taxes automatically drop to zero."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What is a likely immediate effect on borrowing?",
+          correct:"Borrowing becomes more expensive.",
+          wrongs:["Borrowing becomes free.","Congress sets all bank loans directly.","Taxes automatically drop to zero."],
           hint:"Higher rates = higher borrowing cost."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What is a likely effect on consumer/business spending?",
-          choices:[
-            "Spending may slow as loans cost more.",
-            "Spending always rises sharply.",
-            "Spending is illegal.",
-            "Only states can spend money."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What is a likely effect on consumer/business spending?",
+          correct:"Spending may slow as loans cost more.",
+          wrongs:["Spending always rises sharply.","Spending is illegal.","Only states can spend money."],
           hint:"Costlier borrowing can reduce spending."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"What is the intended broader outcome of raising rates during inflation?",
-          choices:[
-            "Reduce inflation pressure by slowing demand.",
-            "Increase inflation as fast as possible.",
-            "Eliminate elections.",
-            "End all trade."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"What is the intended broader outcome of raising rates during inflation?",
+          correct:"Reduce inflation pressure by slowing demand.",
+          wrongs:["Increase inflation as fast as possible.","Eliminate elections.","End all trade."],
           hint:"Tighten demand to slow inflation."
         }
       ],
       explanation:"Rate hikes tighten monetary conditions to reduce demand and inflation pressure over time."
     },
+
+    // Remaining 11–24 condensed but same style (still shuffled automatically)
     {
       id:"G6-011", cs:"CS 10", level:"TEST",
       stem:"A candidate wins several states by small margins but loses the national popular vote.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"What feature of the election system explains this possibility?",
-          choices:[
-            "State-based allocation of electoral votes.",
-            "Direct national popular vote determines winner.",
-            "Supreme Court appoints presidents.",
-            "Congress chooses governors."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"What feature of the election system explains this possibility?",
+          correct:"State-based allocation of electoral votes.",
+          wrongs:["Direct national popular vote determines winner.","Supreme Court appoints presidents.","Congress chooses governors."],
           hint:"Electoral College is state-based."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What is the immediate result of winning enough electoral votes?",
-          choices:[
-            "The candidate wins the presidency.",
-            "The candidate becomes Chief Justice automatically.",
-            "The Constitution is amended immediately.",
-            "The election is canceled."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What is the immediate result of winning enough electoral votes?",
+          correct:"The candidate wins the presidency.",
+          wrongs:["The candidate becomes Chief Justice automatically.","The Constitution is amended immediately.","The election is canceled."],
           hint:"Electoral majority wins."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"What is a likely political outcome after a mismatch?",
-          choices:[
-            "Debate increases over fairness and possible reform.",
-            "All states leave the union.",
-            "Voting ends for ten years.",
-            "Congress bans campaigning."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"What is a likely political outcome after a mismatch?",
+          correct:"Debate increases over fairness and possible reform.",
+          wrongs:["All states leave the union.","Voting ends for ten years.","Congress bans campaigning."],
           hint:"Mismatches trigger reform debates."
         }
       ],
       explanation:"Because outcomes are state-based, electoral totals can differ from national popular totals."
     },
+
     {
       id:"G6-012", cs:"CS 13", level:"TEST",
       stem:"An interest group wants to influence a bill before it reaches the full chamber.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
-        {
-          label:"STEP 1 — Next Event",
-          question:"Where is the best place to focus early influence?",
-          choices:[
-            "The committee considering the bill.",
-            "The U.S. Supreme Court only.",
-            "Foreign governments.",
-            "The state DMV."
-          ],
-          answerIndex:0,
+        { label:"STEP 1 — Next Event", question:"Where is the best place to focus early influence?",
+          correct:"The committee considering the bill.",
+          wrongs:["The U.S. Supreme Court only.","Foreign governments.","The state DMV."],
           hint:"Committees shape bills."
         },
-        {
-          label:"STEP 2 — After That",
-          question:"What strategy most directly affects bill language?",
-          choices:[
-            "Lobbying with research and proposing specific amendments.",
-            "Only posting memes.",
-            "Refusing to vote in all elections.",
-            "Ignoring lawmakers."
-          ],
-          answerIndex:0,
+        { label:"STEP 2 — After That", question:"What strategy most directly affects bill language?",
+          correct:"Lobbying with research and proposing specific amendments.",
+          wrongs:["Only posting memes.","Refusing to vote in all elections.","Ignoring lawmakers."],
           hint:"Specific language + persuasion."
         },
-        {
-          label:"STEP 3 — Outcome",
-          question:"If the group builds a coalition, what is a likely result?",
-          choices:[
-            "The bill changes to gain enough votes to advance.",
-            "All laws stop being written.",
-            "The Constitution disappears.",
-            "The group becomes a political party automatically."
-          ],
-          answerIndex:0,
+        { label:"STEP 3 — Outcome", question:"If the group builds a coalition, what is a likely result?",
+          correct:"The bill changes to gain enough votes to advance.",
+          wrongs:["All laws stop being written.","The Constitution disappears.","The group becomes a political party automatically."],
           hint:"Coalitions shape compromise."
         }
       ],
       explanation:"Early committee influence + targeted lobbying can change language and outcomes."
     },
 
-    // Bonus test items to reach 24 total (keeps your pacing similar to Game 4/5)
+    // 13–24 (kept shorter prompts but valid chain logic)
     {
       id:"G6-013", cs:"CS 7", level:"TEST",
       stem:"The Supreme Court issues a new interpretation of a constitutional right.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What does the decision create for later cases?",
-          choices:["A precedent other courts will follow.","A new amendment automatically.","A new political party.","A new tax bill."],
-          answerIndex:0, hint:"Decisions set precedent."},
+          correct:"A precedent other courts will follow.",
+          wrongs:["A new amendment automatically.","A new political party.","A new tax bill."],
+          hint:"Decisions set precedent."
+        },
         { label:"STEP 2 — After That", question:"What happens when similar cases appear later?",
-          choices:["Courts apply the precedent to new facts.","States ignore the decision permanently.","Only Congress decides outcomes.","Elections replace courts."],
-          answerIndex:0, hint:"Precedent guides application."},
+          correct:"Courts apply the precedent to new facts.",
+          wrongs:["States ignore the decision permanently.","Only Congress decides outcomes.","Elections replace courts."],
+          hint:"Precedent guides application."
+        },
         { label:"STEP 3 — Outcome", question:"What is a likely long-term outcome?",
-          choices:["Government practices adjust to match the ruling.","All branches merge into one.","The Bill of Rights is repealed.","The Senate disappears."],
-          answerIndex:0, hint:"Practice follows interpretation."}
+          correct:"Government practices adjust to match the ruling.",
+          wrongs:["All branches merge into one.","The Bill of Rights is repealed.","The Senate disappears."],
+          hint:"Practice follows interpretation."
+        }
       ],
       explanation:"Court interpretation becomes influential through precedent and changes government practice."
     },
+
     {
       id:"G6-014", cs:"CS 9", level:"TEST",
       stem:"Congress uses the Necessary and Proper Clause to pass a law related to an enumerated power.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What is the claimed constitutional justification?",
-          choices:["Implied powers to carry out enumerated powers.","States' reserved powers only.","No constitutional basis needed.","Foreign treaty rules."],
-          answerIndex:0, hint:"Necessary and Proper supports implied powers."},
+          correct:"Implied powers to carry out enumerated powers.",
+          wrongs:["States' reserved powers only.","No constitutional basis needed.","Foreign treaty rules."],
+          hint:"Necessary and Proper supports implied powers."
+        },
         { label:"STEP 2 — After That", question:"If challenged, who interprets constitutionality?",
-          choices:["Courts interpret the Constitution in cases.","The media decides legality.","Private companies vote on it.","School boards decide for the nation."],
-          answerIndex:0, hint:"Courts resolve constitutional disputes."},
+          correct:"Courts interpret the Constitution in cases.",
+          wrongs:["The media decides legality.","Private companies vote on it.","School boards decide for the nation."],
+          hint:"Courts resolve constitutional disputes."
+        },
         { label:"STEP 3 — Outcome", question:"If upheld, what is a likely effect?",
-          choices:["Federal authority expands in that policy area.","States gain exclusive control of national powers.","Elections end.","No future laws can be passed."],
-          answerIndex:0, hint:"Upholding implied powers can expand federal reach."}
+          correct:"Federal authority expands in that policy area.",
+          wrongs:["States gain exclusive control of national powers.","Elections end.","No future laws can be passed."],
+          hint:"Upholding implied powers can expand federal reach."
+        }
       ],
       explanation:"Necessary and Proper supports implied powers; court rulings can validate broader federal authority."
     },
+
     {
       id:"G6-015", cs:"CS 5", level:"TEST",
       stem:"A court declares a law unconstitutional.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What happens to the law’s enforcement?",
-          choices:["It cannot be enforced as written.","It becomes an amendment.","It replaces the Constitution.","It becomes a campaign slogan."],
-          answerIndex:0, hint:"Unconstitutional laws are invalid."},
+          correct:"It cannot be enforced as written.",
+          wrongs:["It becomes an amendment.","It replaces the Constitution.","It becomes a campaign slogan."],
+          hint:"Unconstitutional laws are invalid."
+        },
         { label:"STEP 2 — After That", question:"How might lawmakers respond?",
-          choices:["Rewrite the law to fit constitutional limits.","Ignore the ruling permanently.","Eliminate all courts.","Cancel elections."],
-          answerIndex:0, hint:"Legislatures revise laws."},
+          correct:"Rewrite the law to fit constitutional limits.",
+          wrongs:["Ignore the ruling permanently.","Eliminate all courts.","Cancel elections."],
+          hint:"Legislatures revise laws."
+        },
         { label:"STEP 3 — Outcome", question:"What broader principle is demonstrated?",
-          choices:["Checks and balances between branches.","Total executive supremacy.","State nullification always wins.","No branch has power."],
-          answerIndex:0, hint:"Judicial review checks legislative action."}
+          correct:"Checks and balances between branches.",
+          wrongs:["Total executive supremacy.","State nullification always wins.","No branch has power."],
+          hint:"Judicial review checks legislative action."
+        }
       ],
       explanation:"Judicial review is a major check—invalidating unconstitutional laws and forcing revision."
     },
+
     {
       id:"G6-016", cs:"CS 20", level:"TEST",
       stem:"Congress raises taxes and cuts spending to address rising inflation.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What happens to overall demand?",
-          choices:["Demand is likely to decrease.","Demand always increases.","Demand becomes irrelevant.","Demand is set by courts."],
-          answerIndex:0, hint:"Contractionary fiscal reduces demand."},
+          correct:"Demand is likely to decrease.",
+          wrongs:["Demand always increases.","Demand becomes irrelevant.","Demand is set by courts."],
+          hint:"Contractionary fiscal reduces demand."
+        },
         { label:"STEP 2 — After That", question:"What happens to price pressures over time (all else equal)?",
-          choices:["Inflation pressure may ease.","Inflation must immediately become zero.","Prices never change.","Only states control inflation."],
-          answerIndex:0, hint:"Lower demand can reduce inflation pressure."},
+          correct:"Inflation pressure may ease.",
+          wrongs:["Inflation must immediately become zero.","Prices never change.","Only states control inflation."],
+          hint:"Lower demand can reduce inflation pressure."
+        },
         { label:"STEP 3 — Outcome", question:"What tradeoff is most likely?",
-          choices:["Higher unemployment risk / slower growth.","Guaranteed faster growth.","No political controversy.","No effect on budgets."],
-          answerIndex:0, hint:"Contraction can slow growth."}
+          correct:"Higher unemployment risk / slower growth.",
+          wrongs:["Guaranteed faster growth.","No political controversy.","No effect on budgets."],
+          hint:"Contraction can slow growth."
+        }
       ],
       explanation:"Contractionary fiscal can reduce inflation pressure but may slow growth and increase unemployment risk."
     },
+
     {
       id:"G6-017", cs:"CS 8", level:"TEST",
       stem:"A school restricts all student protests during lunch, regardless of viewpoint.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"Which principle is most relevant?",
-          choices:["Time, place, and manner restrictions.","Double jeopardy.","Reserved powers.","Electoral votes."],
-          answerIndex:0, hint:"Neutral restrictions can be allowed."},
+          correct:"Time, place, and manner restrictions.",
+          wrongs:["Double jeopardy.","Reserved powers.","Electoral votes."],
+          hint:"Neutral restrictions can be allowed."
+        },
         { label:"STEP 2 — After That", question:"What will matter for constitutionality?",
-          choices:["Whether restrictions are viewpoint-neutral and reasonable.","Whether the school likes the message.","Whether the mayor approves.","Whether it happens on Friday."],
-          answerIndex:0, hint:"Neutral + reasonable is key."},
+          correct:"Whether restrictions are viewpoint-neutral and reasonable.",
+          wrongs:["Whether the school likes the message.","Whether the mayor approves.","Whether it happens on Friday."],
+          hint:"Neutral + reasonable is key."
+        },
         { label:"STEP 3 — Outcome", question:"If the rule is too broad, what might happen?",
-          choices:["It could be struck down or narrowed.","It becomes a constitutional amendment.","It ends all speech rights forever.","It creates a new branch."],
-          answerIndex:0, hint:"Overbroad rules get narrowed/invalidated."}
+          correct:"It could be struck down or narrowed.",
+          wrongs:["It becomes a constitutional amendment.","It ends all speech rights forever.","It creates a new branch."],
+          hint:"Overbroad rules get narrowed/invalidated."
+        }
       ],
       explanation:"Schools can regulate time/place/manner, but rules must be reasonable and viewpoint-neutral."
     },
+
     {
       id:"G6-018", cs:"CS 11", level:"TEST",
       stem:"The voting age is lowered to 18.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What immediate change occurs?",
-          choices:["More citizens become eligible to vote.","Poll taxes return.","Only property owners vote.","Electoral College ends."],
-          answerIndex:0, hint:"Lower age = more eligible."},
+          correct:"More citizens become eligible to vote.",
+          wrongs:["Poll taxes return.","Only property owners vote.","Electoral College ends."],
+          hint:"Lower age = more eligible."
+        },
         { label:"STEP 2 — After That", question:"What is a likely political response?",
-          choices:["Campaigns target younger voters’ concerns.","Elections are suspended.","Courts write campaign ads.","Senators are appointed by kings."],
-          answerIndex:0, hint:"Candidates adapt to new voters."},
+          correct:"Campaigns target younger voters’ concerns.",
+          wrongs:["Elections are suspended.","Courts write campaign ads.","Senators are appointed by kings."],
+          hint:"Candidates adapt to new voters."
+        },
         { label:"STEP 3 — Outcome", question:"What broader democratic effect is expected?",
-          choices:["Expanded participation in self-government.","Less representation overall.","End of political parties.","Elimination of federalism."],
-          answerIndex:0, hint:"More participation."}
+          correct:"Expanded participation in self-government.",
+          wrongs:["Less representation overall.","End of political parties.","Elimination of federalism."],
+          hint:"More participation."
+        }
       ],
       explanation:"Expanding eligibility broadens participation and can shift campaign strategies."
     },
+
     {
       id:"G6-019", cs:"CS 3", level:"TEST",
       stem:"A news article cites anonymous sources but provides no documents or data.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What should a critical reader do first?",
-          choices:["Look for corroboration from other credible sources.","Assume it is false immediately.","Share it because it is dramatic.","Ignore all news forever."],
-          answerIndex:0, hint:"Cross-check."},
+          correct:"Look for corroboration from other credible sources.",
+          wrongs:["Assume it is false immediately.","Share it because it is dramatic.","Ignore all news forever."],
+          hint:"Cross-check."
+        },
         { label:"STEP 2 — After That", question:"If no evidence appears elsewhere, what is best?",
-          choices:["Treat the claim as unverified.","Treat it as proven fact.","Attack the author personally.","Assume the opposite is true."],
-          answerIndex:0, hint:"Unverified means uncertain."},
+          correct:"Treat the claim as unverified.",
+          wrongs:["Treat it as proven fact.","Attack the author personally.","Assume the opposite is true."],
+          hint:"Unverified means uncertain."
+        },
         { label:"STEP 3 — Outcome", question:"What is the best final step before believing it?",
-          choices:["Wait for primary documents or confirmed reporting.","Demand a vote from your friends.","Create your own rumor.","Delete the Constitution."],
-          answerIndex:0, hint:"Primary evidence matters."}
+          correct:"Wait for primary documents or confirmed reporting.",
+          wrongs:["Demand a vote from your friends.","Create your own rumor.","Delete the Constitution."],
+          hint:"Primary evidence matters."
+        }
       ],
       explanation:"Claims without evidence should be treated cautiously until corroborated with credible confirmation."
     },
+
     {
       id:"G6-020", cs:"CS 18", level:"TEST",
       stem:"Officials implement a new public policy program.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What should happen after implementation begins?",
-          choices:["Evaluate effectiveness and unintended consequences.","Declare it perfect forever.","End all oversight.","Remove all budgets."],
-          answerIndex:0, hint:"Policy evaluation follows implementation."},
+          correct:"Evaluate effectiveness and unintended consequences.",
+          wrongs:["Declare it perfect forever.","End all oversight.","Remove all budgets."],
+          hint:"Policy evaluation follows implementation."
+        },
         { label:"STEP 2 — After That", question:"If results are worse than expected, what is likely?",
-          choices:["Revisions or reforms to the policy.","Immediate cancellation of the Constitution.","No change ever allowed.","Only courts can rewrite budgets."],
-          answerIndex:0, hint:"Policies get revised based on evidence."},
+          correct:"Revisions or reforms to the policy.",
+          wrongs:["Immediate cancellation of the Constitution.","No change ever allowed.","Only courts can rewrite budgets."],
+          hint:"Policies get revised based on evidence."
+        },
         { label:"STEP 3 — Outcome", question:"What does this cycle illustrate?",
-          choices:["Policy-making is ongoing and iterative.","Policy is one-and-done permanently.","Policy replaces elections.","Policy ends federalism."],
-          answerIndex:0, hint:"Cycle repeats."}
+          correct:"Policy-making is ongoing and iterative.",
+          wrongs:["Policy is one-and-done permanently.","Policy replaces elections.","Policy ends federalism."],
+          hint:"Cycle repeats."
+        }
       ],
       explanation:"Public policy is iterative: implement → evaluate → revise."
     },
+
     {
       id:"G6-021", cs:"CS 5", level:"TEST",
       stem:"Congress investigates an executive agency’s actions.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What is this oversight intended to do?",
-          choices:["Check executive power and ensure accountability.","End the executive branch.","Create a monarchy.","Write court opinions."],
-          answerIndex:0, hint:"Oversight = accountability."},
+          correct:"Check executive power and ensure accountability.",
+          wrongs:["End the executive branch.","Create a monarchy.","Write court opinions."],
+          hint:"Oversight = accountability."
+        },
         { label:"STEP 2 — After That", question:"What tool might Congress use during oversight?",
-          choices:["Hearings and subpoenas for testimony/documents.","Printing money directly.","Appointing governors.","Cancelling elections."],
-          answerIndex:0, hint:"Hearings/subpoenas."},
+          correct:"Hearings and subpoenas for testimony/documents.",
+          wrongs:["Printing money directly.","Appointing governors.","Cancelling elections."],
+          hint:"Hearings/subpoenas."
+        },
         { label:"STEP 3 — Outcome", question:"If wrongdoing is found, what may follow?",
-          choices:["Legislation, budget changes, or sanctions/discipline.","Automatic constitutional amendment.","Immediate war declaration.","Elimination of courts."],
-          answerIndex:0, hint:"Congress can respond with laws/funding limits."}
+          correct:"Legislation, budget changes, or sanctions/discipline.",
+          wrongs:["Automatic constitutional amendment.","Immediate war declaration.","Elimination of courts."],
+          hint:"Congress can respond with laws/funding limits."
+        }
       ],
       explanation:"Legislative oversight is a check on the executive and can lead to reforms or constraints."
     },
+
     {
       id:"G6-022", cs:"CS 9", level:"TEST",
       stem:"A state tries to regulate an area where federal law already sets national standards.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What concept describes federal law blocking state regulation?",
-          choices:["Preemption.","Jury nullification.","Electoral allocation.","Double jeopardy."],
-          answerIndex:0, hint:"Preemption = federal blocks."},
+          correct:"Preemption.",
+          wrongs:["Jury nullification.","Electoral allocation.","Double jeopardy."],
+          hint:"Preemption = federal blocks."
+        },
         { label:"STEP 2 — After That", question:"If challenged, what will courts do?",
-          choices:["Determine whether Congress intended to preempt state action.","Let both laws conflict forever.","Make a new amendment instantly.","Ask social media to vote."],
-          answerIndex:0, hint:"Intent + supremacy analysis."},
+          correct:"Determine whether Congress intended to preempt state action.",
+          wrongs:["Let both laws conflict forever.","Make a new amendment instantly.","Ask social media to vote."],
+          hint:"Intent + supremacy analysis."
+        },
         { label:"STEP 3 — Outcome", question:"If preemption applies, what happens?",
-          choices:["State regulation is invalid to the extent it conflicts.","Federal law disappears.","States become countries.","All agencies dissolve."],
-          answerIndex:0, hint:"State rule falls where it conflicts."}
+          correct:"State regulation is invalid to the extent it conflicts.",
+          wrongs:["Federal law disappears.","States become countries.","All agencies dissolve."],
+          hint:"State rule falls where it conflicts."
+        }
       ],
       explanation:"Preemption is a supremacy-based principle that can invalidate conflicting state regulation."
     },
+
     {
       id:"G6-023", cs:"CS 13", level:"TEST",
       stem:"A group of lawmakers forms an alliance to pass an education reform bill.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"What is this alliance called?",
-          choices:["A coalition.","A veto.","A warrant.","A referendum."],
-          answerIndex:0, hint:"Alliance for votes."},
+          correct:"A coalition.",
+          wrongs:["A veto.","A warrant.","A referendum."],
+          hint:"Alliance for votes."
+        },
         { label:"STEP 2 — After That", question:"What is most likely needed to keep the coalition together?",
-          choices:["Compromise and tradeoffs in the bill.","A court trial.","A constitutional convention.","A new branch of government."],
-          answerIndex:0, hint:"Coalitions require compromise."},
+          correct:"Compromise and tradeoffs in the bill.",
+          wrongs:["A court trial.","A constitutional convention.","A new branch of government."],
+          hint:"Coalitions require compromise."
+        },
         { label:"STEP 3 — Outcome", question:"If compromise succeeds, what is the likely result?",
-          choices:["Enough votes to pass or advance the bill.","Automatic presidential election.","End of interest groups.","No committee review ever."],
-          answerIndex:0, hint:"Votes are the currency."}
+          correct:"Enough votes to pass or advance the bill.",
+          wrongs:["Automatic presidential election.","End of interest groups.","No committee review ever."],
+          hint:"Votes are the currency."
+        }
       ],
       explanation:"Coalitions require compromise to secure the votes needed to move legislation."
     },
+
     {
       id:"G6-024", cs:"CS 20–21", level:"TEST",
       stem:"Inflation is rising while unemployment is also increasing.",
       prompt:"Build the chain: what happens next, and what happens after that?",
       steps:[
         { label:"STEP 1 — Next Event", question:"Why is policy-making difficult in this situation?",
-          choices:["Policies that fight inflation can worsen unemployment, and vice versa.","There are no tools for the economy.","Only courts can act.","The Constitution bans economic policy."],
-          answerIndex:0, hint:"Tradeoffs exist."},
+          correct:"Policies that fight inflation can worsen unemployment, and vice versa.",
+          wrongs:["There are no tools for the economy.","Only courts can act.","The Constitution bans economic policy."],
+          hint:"Tradeoffs exist."
+        },
         { label:"STEP 2 — After That", question:"What is a likely next step by policymakers?",
-          choices:["Debate tradeoffs and choose between competing goals.","End elections to fix the economy.","Ignore all data.","Let foreign governments set policy."],
-          answerIndex:0, hint:"Tradeoffs require choices."},
+          correct:"Debate tradeoffs and choose between competing goals.",
+          wrongs:["End elections to fix the economy.","Ignore all data.","Let foreign governments set policy."],
+          hint:"Tradeoffs require choices."
+        },
         { label:"STEP 3 — Outcome", question:"What is the most realistic outcome over time?",
-          choices:["Policies may reduce one problem while worsening another temporarily.","Both problems vanish instantly.","No changes ever occur.","Only states can respond to inflation."],
-          answerIndex:0, hint:"Short-run tradeoffs happen."}
+          correct:"Policies may reduce one problem while worsening another temporarily.",
+          wrongs:["Both problems vanish instantly.","No changes ever occur.","Only states can respond to inflation."],
+          hint:"Short-run tradeoffs happen."
+        }
       ],
       explanation:"When goals conflict, policymakers must weigh tradeoffs and accept imperfect outcomes in the short run."
     }
   ];
+
+  // Convert raw steps into playable steps with shuffled choices + correct index computed
+  const questions = raw.map(q => ({
+    ...q,
+    steps: q.steps.map((s, i) =>
+      makeStep(q.id, i+1, s.label, s.question, s.correct, s.wrongs, s.hint)
+    )
+  }));
 
   // =============================
   // ELEMENTS
@@ -1173,7 +1020,7 @@
   let idx=0, attempts=0, solved=0, misses=0;
 
   const perQ = questions.map(()=>({
-    stepTried:[false,false,false],   // first check per step counts as miss if wrong
+    stepTried:[false,false,false],
     missed:false,
     solved:false,
     stepCorrect:[false,false,false]
@@ -1257,15 +1104,15 @@
 
       const hdr = document.createElement('div');
       hdr.className = "stepHdr";
-      const tag = document.createElement('div');
-      tag.className = "tag";
-      tag.textContent = s.label;
+      const tagEl = document.createElement('div');
+      tagEl.className = "tag";
+      tagEl.textContent = s.label;
 
       const lock = document.createElement('div');
       lock.style.color = "var(--muted)";
       lock.style.fontWeight = "900";
       lock.textContent = (stepIndex === 0 || pq.stepCorrect[stepIndex-1]) ? "UNLOCKED" : "LOCKED";
-      hdr.appendChild(tag);
+      hdr.appendChild(tagEl);
       hdr.appendChild(lock);
 
       const txt = document.createElement('div');
@@ -1282,10 +1129,14 @@
         b.type="button";
         b.className="choiceBtn";
         b.textContent = `${String.fromCharCode(65+i)}. ${c}`;
-        b.disabled = !isUnlocked || pq.stepCorrect[stepIndex]; // lock if not unlocked or already correct
+        b.disabled = !isUnlocked || pq.stepCorrect[stepIndex];
         b.addEventListener('click', ()=>pick(stepIndex, i));
         choices.appendChild(b);
       });
+
+      step.appendChild(hdr);
+      step.appendChild(txt);
+      step.appendChild(choices);
 
       if(pq.stepCorrect[stepIndex]){
         const ok = document.createElement('div');
@@ -1293,14 +1144,7 @@
         ok.style.color="var(--good)";
         ok.style.fontWeight="900";
         ok.textContent="✅ Correct";
-        step.appendChild(hdr);
-        step.appendChild(txt);
-        step.appendChild(choices);
         step.appendChild(ok);
-      } else {
-        step.appendChild(hdr);
-        step.appendChild(txt);
-        step.appendChild(choices);
       }
 
       elChain.appendChild(step);
@@ -1313,13 +1157,9 @@
     const q = questions[idx];
     const pq = perQ[idx];
 
-    // First interaction with the question (any step) counts as an "attempt" once
-    // We count attempts when they first answer Step 1 the first time.
     if(stepIndex === 0 && !pq.stepTried[0]){
       attempts++;
     }
-
-    // record first try for this step
     if(!pq.stepTried[stepIndex]) pq.stepTried[stepIndex] = true;
 
     const correct = (choiceIndex === q.steps[stepIndex].answerIndex);
@@ -1327,7 +1167,6 @@
     if(correct){
       pq.stepCorrect[stepIndex] = true;
 
-      // If step 3 correct => question solved
       if(stepIndex === 2 && !pq.solved){
         pq.solved = true;
         solved++;
@@ -1350,7 +1189,6 @@
       return;
     }
 
-    // wrong
     if(!pq.missed){
       pq.missed = true;
       misses++;
