@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Gov Game 1 — Cause & Effect (Mastery)</title>
+  <title>Gov Game 1 — Cause &amp; Effect (Mastery)</title>
   <style>
     :root{
       --bg:#0b1220;
@@ -827,7 +827,6 @@
   // =============================
   // ELEMENTS
   // =============================
-  const elNameGate = document.getElementById('nameGate');
   const elStudentName = document.getElementById('studentName');
   const btnStart = document.getElementById('btnStart');
   const btnRestart = document.getElementById('btnRestart');
@@ -857,11 +856,16 @@
   let startISO = null;
   let endISO = null;
 
+  // IMPORTANT FIX:
+  // We'll build a shuffled copy of the question set at game start so the correct
+  // answer is NOT always "A"/index 0, while still keeping correctness aligned.
+  let gameQuestions = null;
+
   let idx = 0;
   let attempts = 0;          // first-attempt submissions per question
   let correct = 0;           // questions solved (eventually)
   let misses = 0;            // questions missed on first attempt
-  const perQ = questions.map(() => ({ firstAttemptMade:false, missed:false, solved:false }));
+  let perQ = null;           // created at start, sized to gameQuestions
 
   function fmt(tsISO){
     if(!tsISO) return "—";
@@ -878,16 +882,47 @@
     return (h >>> 0).toString(16).toUpperCase();
   }
 
+  // Fisher–Yates shuffle for an array of indices
+  function shuffleIndices(n){
+    const a = Array.from({length:n}, (_,i)=>i);
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Build a shuffled version of each question's choices, and update answerIndex accordingly.
+  function buildShuffledQuestions(base){
+    return base.map(q => {
+      const perm = shuffleIndices(q.choices.length);
+      const newChoices = perm.map(pi => q.choices[pi]);
+      const newAnswerIndex = perm.indexOf(q.answerIndex);
+
+      // Safety check
+      if(newAnswerIndex < 0){
+        throw new Error(`Shuffle failed for question ${q.id}: answerIndex not found.`);
+      }
+
+      return {
+        ...q,
+        choices: newChoices,
+        answerIndex: newAnswerIndex
+      };
+    });
+  }
+
   function updateStats(){
     stName.textContent = elStudentName.value.trim() || "—";
-    stProg.textContent = `${Math.min(correct, questions.length)} / ${questions.length}`;
+    const total = gameQuestions ? gameQuestions.length : questions.length;
+    stProg.textContent = `${Math.min(correct, total)} / ${total}`;
     const acc = attempts ? Math.round((correct / attempts) * 100) : 0;
     stAcc.textContent = `${acc}%`;
     stAtt.textContent = String(attempts);
     stStart.textContent = fmt(startISO);
     stEnd.textContent = fmt(endISO);
 
-    const allSolved = perQ.every(x => x.solved);
+    const allSolved = perQ ? perQ.every(x => x.solved) : false;
     const mastery = allSolved && misses === 0;
 
     if(mastery){
@@ -931,10 +966,10 @@
   function renderQuestion(){
     clearMsg();
 
-    const q = questions[idx];
+    const q = gameQuestions[idx];
 
     const ladderTag = (idx < 15) ? "STARTER" : "TEST MODE";
-    elKicker.textContent = `${ladderTag} • ${q.cs} • ${q.skill} • Question ${idx+1} of ${questions.length}`;
+    elKicker.textContent = `${ladderTag} • ${q.cs} • ${q.skill} • Question ${idx+1} of ${gameQuestions.length}`;
     elStem.textContent = q.stem;
     elPrompt.textContent = q.prompt;
 
@@ -952,7 +987,7 @@
   }
 
   function nextQuestion(){
-    if(idx < questions.length - 1){
+    if(idx < gameQuestions.length - 1){
       idx++;
       renderQuestion();
       return;
@@ -972,7 +1007,7 @@
   }
 
   function choose(choiceIndex){
-    const q = questions[idx];
+    const q = gameQuestions[idx];
     const pq = perQ[idx];
 
     if(!pq.firstAttemptMade){
@@ -1019,6 +1054,9 @@
     startISO = new Date().toISOString();
     endISO = null;
 
+    // Build shuffled choices ONCE per run (so retries on the same question remain consistent)
+    gameQuestions = buildShuffledQuestions(questions);
+
     btnRestart.disabled = false;
     btnRestart.addEventListener('click', () => location.reload());
 
@@ -1029,9 +1067,8 @@
     attempts = 0;
     correct = 0;
     misses = 0;
-    for(let i=0;i<perQ.length;i++){
-      perQ[i] = { firstAttemptMade:false, missed:false, solved:false };
-    }
+
+    perQ = gameQuestions.map(() => ({ firstAttemptMade:false, missed:false, solved:false }));
 
     renderQuestion();
   }
