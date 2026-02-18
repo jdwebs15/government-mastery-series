@@ -368,8 +368,21 @@
   // Each question: step1 cause, step1 choices (one correct),
   // then step2 prompt unlocked, then step3.
   // =============================
-  function rotateChoices(correctText, wrong1, wrong2, wrong3, rot){
-  const base = [correctText, wrong1, wrong2, wrong3];
+  function rotateChoices(correctText, wrong1, wrong2, wrong3){
+  const arr = [correctText, wrong1, wrong2, wrong3];
+
+  // Fisher–Yates shuffle
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return {
+    choices: arr,
+    answerIndex: arr.indexOf(correctText)
+  };
+}
+
 
   // Put the correct answer at A/B/C/D by reordering the 4 choices
   const orderMap = [
