@@ -320,16 +320,12 @@
 
   // =============================
   // QUESTION BANK (30) — Best Explains
-  // Properties: id, cs, skill, stem, prompt, choices, answerIndex, explanation, hint
+  // NOTE: Your original bank has answerIndex: 0 for every question.
+  // FIX: We SHUFFLE the choices for each question at game start, while tracking the correct option.
   // =============================
-  const questions = [
-    // -----------------------------
-    // Q1–15 STARTER-ALIGNED
-    // -----------------------------
+  const questionsRaw = [
     {
-      id:"G3-001",
-      cs:"CS 1",
-      skill:"Best Explains",
+      id:"G3-001", cs:"CS 1", skill:"Best Explains",
       stem:"A city is deciding whether to add a new public bus route. Residents attend a public meeting and provide evidence about traffic and access to jobs.",
       prompt:"Which statement best explains why this civic action can influence policy?",
       choices:[
@@ -343,9 +339,7 @@
       hint:"Look for a choice that connects input → decision-making."
     },
     {
-      id:"G3-002",
-      cs:"CS 1",
-      skill:"Best Explains",
+      id:"G3-002", cs:"CS 1", skill:"Best Explains",
       stem:"A community group wants to change a state education rule.",
       prompt:"Which statement best explains the most effective target for the group’s advocacy?",
       choices:[
@@ -359,9 +353,7 @@
       hint:"Match the issue to who has legal authority."
     },
     {
-      id:"G3-003",
-      cs:"CS 2",
-      skill:"Best Explains",
+      id:"G3-003", cs:"CS 2", skill:"Best Explains",
       stem:"Political parties focus heavily on elections and campaigning.",
       prompt:"Which statement best explains why winning elections matters to political parties?",
       choices:[
@@ -375,9 +367,7 @@
       hint:"Office-holding → policy."
     },
     {
-      id:"G3-004",
-      cs:"CS 3",
-      skill:"Best Explains",
+      id:"G3-004", cs:"CS 3", skill:"Best Explains",
       stem:"A student reads two articles about the same event. One includes sources, data, and links to documents; the other uses insults and provides no evidence.",
       prompt:"Which statement best explains why the first article is more credible?",
       choices:[
@@ -391,9 +381,7 @@
       hint:"Evidence + verification."
     },
     {
-      id:"G3-005",
-      cs:"CS 4",
-      skill:"Best Explains",
+      id:"G3-005", cs:"CS 4", skill:"Best Explains",
       stem:"Two lawmakers revise a bill to address concerns from different groups so it can pass.",
       prompt:"Which statement best explains what is happening in the lawmaking process?",
       choices:[
@@ -407,9 +395,7 @@
       hint:"Changes to gain votes = compromise."
     },
     {
-      id:"G3-006",
-      cs:"CS 5",
-      skill:"Best Explains",
+      id:"G3-006", cs:"CS 5", skill:"Best Explains",
       stem:"Congress passes a law, the President signs it, and later a court rules it unconstitutional.",
       prompt:"Which statement best explains how checks and balances works in this situation?",
       choices:[
@@ -423,9 +409,7 @@
       hint:"Which branch can declare laws unconstitutional?"
     },
     {
-      id:"G3-007",
-      cs:"CS 6",
-      skill:"Best Explains",
+      id:"G3-007", cs:"CS 6", skill:"Best Explains",
       stem:"Anti-Federalists demanded a Bill of Rights before supporting the Constitution.",
       prompt:"Which statement best explains the Anti-Federalist position?",
       choices:[
@@ -439,9 +423,7 @@
       hint:"Fear of centralized power + rights."
     },
     {
-      id:"G3-008",
-      cs:"CS 7",
-      skill:"Best Explains",
+      id:"G3-008", cs:"CS 7", skill:"Best Explains",
       stem:"The Constitution has changed through amendments and through Supreme Court decisions that reinterpret its language.",
       prompt:"Which statement best explains why both processes matter to constitutional government?",
       choices:[
@@ -455,9 +437,7 @@
       hint:"Formal change vs interpretation."
     },
     {
-      id:"G3-009",
-      cs:"CS 8",
-      skill:"Best Explains",
+      id:"G3-009", cs:"CS 8", skill:"Best Explains",
       stem:"Police search a home without a warrant or probable cause and seize items.",
       prompt:"Which statement best explains why this is a constitutional issue?",
       choices:[
@@ -471,9 +451,7 @@
       hint:"Search + warrant standards."
     },
     {
-      id:"G3-010",
-      cs:"CS 9",
-      skill:"Best Explains",
+      id:"G3-010", cs:"CS 9", skill:"Best Explains",
       stem:"A state law conflicts with a constitutional federal law.",
       prompt:"Which statement best explains what happens under the Supremacy Clause?",
       choices:[
@@ -487,9 +465,7 @@
       hint:"Supremacy resolves conflicts."
     },
     {
-      id:"G3-011",
-      cs:"CS 10",
-      skill:"Best Explains",
+      id:"G3-011", cs:"CS 10", skill:"Best Explains",
       stem:"Candidates spend a lot of time campaigning in a few competitive states.",
       prompt:"Which statement best explains why this happens in the Electoral College system?",
       choices:[
@@ -503,9 +479,7 @@
       hint:"State outcomes → electoral votes."
     },
     {
-      id:"G3-012",
-      cs:"CS 11",
-      skill:"Best Explains",
+      id:"G3-012", cs:"CS 11", skill:"Best Explains",
       stem:"Expanding voting rights increases the number of eligible voters.",
       prompt:"Which statement best explains a likely effect of expanding the electorate?",
       choices:[
@@ -519,9 +493,7 @@
       hint:"More eligible voters → participation changes."
     },
     {
-      id:"G3-013",
-      cs:"CS 12",
-      skill:"Best Explains",
+      id:"G3-013", cs:"CS 12", skill:"Best Explains",
       stem:"A political party changes its messaging and recruits new candidates after losing.",
       prompt:"Which statement best explains why the party would take these steps?",
       choices:[
@@ -535,9 +507,7 @@
       hint:"Competition for votes."
     },
     {
-      id:"G3-014",
-      cs:"CS 13",
-      skill:"Best Explains",
+      id:"G3-014", cs:"CS 13", skill:"Best Explains",
       stem:"An interest group provides research and policy proposals to lawmakers.",
       prompt:"Which statement best explains why interest groups do this?",
       choices:[
@@ -551,9 +521,7 @@
       hint:"Influence decisions, not replace lawmaking."
     },
     {
-      id:"G3-015",
-      cs:"CS 14",
-      skill:"Best Explains",
+      id:"G3-015", cs:"CS 14", skill:"Best Explains",
       stem:"A student claims rights are unlimited and can be used in any way at any time.",
       prompt:"Which statement best explains why this claim is inaccurate in a constitutional democracy?",
       choices:[
@@ -566,14 +534,8 @@
       explanation:"Rights exist alongside responsibilities and limits designed to protect others and maintain order and safety.",
       hint:"Balance rights with harm/disruption."
     },
-
-    // -----------------------------
-    // Q16–30 TEST-MODE FEEL (released-modeled)
-    // -----------------------------
     {
-      id:"G3-016",
-      cs:"CS 15",
-      skill:"Best Explains",
+      id:"G3-016", cs:"CS 15", skill:"Best Explains",
       stem:"A speaker criticizes government policy in a public forum, and some listeners demand the government stop the speech because it is offensive.",
       prompt:"Which statement best explains how First Amendment principles apply in most situations?",
       choices:[
@@ -587,9 +549,7 @@
       hint:"Protection includes unpopular political speech."
     },
     {
-      id:"G3-017",
-      cs:"CS 16",
-      skill:"Best Explains",
+      id:"G3-017", cs:"CS 16", skill:"Best Explains",
       stem:"Ohio’s constitution includes provisions on how state officials are elected and how laws are made at the state level.",
       prompt:"Which statement best explains the purpose of a state constitution in the federal system?",
       choices:[
@@ -603,9 +563,7 @@
       hint:"State framework under federal supremacy."
     },
     {
-      id:"G3-018",
-      cs:"CS 17",
-      skill:"Best Explains",
+      id:"G3-018", cs:"CS 17", skill:"Best Explains",
       stem:"A resident wants to address potholes on a neighborhood street and also wants to influence a statewide education funding plan.",
       prompt:"Which statement best explains how the resident should choose where to engage?",
       choices:[
@@ -619,9 +577,7 @@
       hint:"Match issue to authority level."
     },
     {
-      id:"G3-019",
-      cs:"CS 18",
-      skill:"Best Explains",
+      id:"G3-019", cs:"CS 18", skill:"Best Explains",
       stem:"A policy proposal gains media attention and public debate. Lawmakers revise the proposal to address concerns and secure votes.",
       prompt:"Which statement best explains what this shows about the policy-making process?",
       choices:[
@@ -635,9 +591,7 @@
       hint:"Public input + compromise can alter outcomes."
     },
     {
-      id:"G3-020",
-      cs:"CS 19",
-      skill:"Best Explains",
+      id:"G3-020", cs:"CS 19", skill:"Best Explains",
       stem:"Citizens contact officials, interest groups lobby, and media coverage increases attention to a bill.",
       prompt:"Which statement best explains the most likely effect of these actions?",
       choices:[
@@ -651,9 +605,7 @@
       hint:"Influence, not automatic law."
     },
     {
-      id:"G3-021",
-      cs:"CS 20",
-      skill:"Best Explains",
+      id:"G3-021", cs:"CS 20", skill:"Best Explains",
       stem:"Congress increases spending on infrastructure and reduces certain taxes to stimulate demand during a recession.",
       prompt:"Which statement best explains why this is an example of fiscal policy?",
       choices:[
@@ -667,9 +619,7 @@
       hint:"Taxes + spending = fiscal."
     },
     {
-      id:"G3-022",
-      cs:"CS 21",
-      skill:"Best Explains",
+      id:"G3-022", cs:"CS 21", skill:"Best Explains",
       stem:"The Federal Reserve raises interest rates and sells securities to reduce inflation.",
       prompt:"Which statement best explains why these actions are monetary policy?",
       choices:[
@@ -683,9 +633,7 @@
       hint:"Fed tools = monetary."
     },
     {
-      id:"G3-023",
-      cs:"CS 8",
-      skill:"Best Explains",
+      id:"G3-023", cs:"CS 8", skill:"Best Explains",
       stem:"Police seize a person’s property during an investigation without clear legal justification.",
       prompt:"Which statement best explains why the Fourth Amendment is central to this issue?",
       choices:[
@@ -699,9 +647,7 @@
       hint:"Searches/seizures + reasonableness."
     },
     {
-      id:"G3-024",
-      cs:"CS 7–9",
-      skill:"Best Explains",
+      id:"G3-024", cs:"CS 7–9", skill:"Best Explains",
       stem:"A Supreme Court ruling changes how a constitutional principle is applied, affecting future cases and government actions.",
       prompt:"Which statement best explains why this can change constitutional government without an amendment?",
       choices:[
@@ -715,9 +661,7 @@
       hint:"Interpretation changes application."
     },
     {
-      id:"G3-025",
-      cs:"CS 10–11",
-      skill:"Best Explains",
+      id:"G3-025", cs:"CS 10–11", skill:"Best Explains",
       stem:"A candidate loses the national popular vote but wins the presidency by winning enough electoral votes.",
       prompt:"Which statement best explains how this outcome is possible?",
       choices:[
@@ -731,9 +675,7 @@
       hint:"State results → electoral votes."
     },
     {
-      id:"G3-026",
-      cs:"CS 12–13",
-      skill:"Best Explains",
+      id:"G3-026", cs:"CS 12–13", skill:"Best Explains",
       stem:"A political party and several interest groups advocate for changes in a proposed bill.",
       prompt:"Which statement best explains the different roles parties and interest groups usually play?",
       choices:[
@@ -747,9 +689,7 @@
       hint:"Office-seeking vs issue influence."
     },
     {
-      id:"G3-027",
-      cs:"CS 14–15",
-      skill:"Best Explains",
+      id:"G3-027", cs:"CS 14–15", skill:"Best Explains",
       stem:"A school limits speech that includes targeted threats toward another student.",
       prompt:"Which statement best explains why this limitation can be consistent with constitutional principles?",
       choices:[
@@ -763,9 +703,7 @@
       hint:"Threats/safety are key limits."
     },
     {
-      id:"G3-028",
-      cs:"CS 16–17",
-      skill:"Best Explains",
+      id:"G3-028", cs:"CS 16–17", skill:"Best Explains",
       stem:"A state expands privacy protections beyond what federal law requires.",
       prompt:"Which statement best explains why the state can do this?",
       choices:[
@@ -779,9 +717,7 @@
       hint:"States can add, not override."
     },
     {
-      id:"G3-029",
-      cs:"CS 18–19",
-      skill:"Best Explains",
+      id:"G3-029", cs:"CS 18–19", skill:"Best Explains",
       stem:"A controversial policy proposal is modified after hearings and public debate, then passes in a revised form.",
       prompt:"Which statement best explains what this shows about public policy in a democracy?",
       choices:[
@@ -795,9 +731,7 @@
       hint:"Feedback + revision are common."
     },
     {
-      id:"G3-030",
-      cs:"CS 20–21",
-      skill:"Best Explains",
+      id:"G3-030", cs:"CS 20–21", skill:"Best Explains",
       stem:"Leaders consider both tax cuts and lowering interest rates to respond to a downturn.",
       prompt:"Which statement best explains the difference between these two approaches?",
       choices:[
@@ -815,7 +749,6 @@
   // =============================
   // ELEMENTS
   // =============================
-  const elNameGate = document.getElementById('nameGate');
   const elStudentName = document.getElementById('studentName');
   const btnStart = document.getElementById('btnStart');
   const btnRestart = document.getElementById('btnRestart');
@@ -846,12 +779,15 @@
   let startISO=null, endISO=null;
   let idx=0, attempts=0, solved=0, misses=0;
 
-  const perQ = questions.map(() => ({
-    firstAttemptMade:false,
-    missed:false,
-    solved:false
-  }));
+  // This will become the active question set AFTER we shuffle choices on start
+  let questions = [];
 
+  // Per-question tracking (rebuilt on start to match questions length)
+  let perQ = [];
+
+  // =============================
+  // HELPERS
+  // =============================
   function fmt(tsISO){
     if(!tsISO) return "—";
     const d = new Date(tsISO);
@@ -864,7 +800,30 @@
       h ^= s.charCodeAt(i);
       h = Math.imul(h, 16777619);
     }
-    return (h >>> 0).toString(16).toUpperCase();
+    return (h >>> 0);
+  }
+
+  function hashHex(s){
+    return hashString(s).toString(16).toUpperCase();
+  }
+
+  // Seeded RNG (stable shuffle per student/run)
+  function mulberry32(seed){
+    let t = seed >>> 0;
+    return function(){
+      t += 0x6D2B79F5;
+      let x = Math.imul(t ^ (t >>> 15), 1 | t);
+      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffleInPlace(arr, rand){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(rand() * (i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 
   function setMsg(kind,title,body){
@@ -882,7 +841,7 @@
 
   function updateStats(){
     stName.textContent = elStudentName.value.trim() || "—";
-    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
+    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length || 0}`;
     const acc = attempts ? Math.round((solved/attempts)*100) : 0;
     stAcc.textContent = `${acc}%`;
     stMiss.textContent = String(misses);
@@ -890,7 +849,7 @@
     stStart.textContent = fmt(startISO);
     stEnd.textContent = fmt(endISO);
 
-    const allSolved = perQ.every(x => x.solved);
+    const allSolved = perQ.length ? perQ.every(x => x.solved) : false;
     const mastery = allSolved && misses === 0;
 
     if(mastery){
@@ -904,7 +863,7 @@
     if(mastery && endISO){
       const name = elStudentName.value.trim();
       const payload = `${name}|${startISO}|${endISO}|A${attempts}|S${solved}|M${misses}`;
-      const code = `GOV3-${hashString(payload)}-${attempts}${solved}${misses}`;
+      const code = `GOV3-${hashHex(payload)}-${attempts}${solved}${misses}`;
       elCodeBox.style.display = "block";
       elCodeBox.textContent =
         `✅ SUBMIT CODE (copy/paste)\n\n` +
@@ -917,16 +876,45 @@
     }
   }
 
+  // Build active question set with SHUFFLED choices while preserving correctness.
+  function buildQuestionsForRun(seed){
+    const rand = mulberry32(seed);
+    const built = questionsRaw.map(q => {
+      // Convert choices into objects so correctness travels with the text
+      const choiceObjs = q.choices.map((text, i) => ({
+        text,
+        isCorrect: i === q.answerIndex
+      }));
+      shuffleInPlace(choiceObjs, rand);
+
+      const correctIndex = choiceObjs.findIndex(c => c.isCorrect);
+
+      return {
+        ...q,
+        // Store shuffled choices + correct index for this run
+        choicesShuffled: choiceObjs.map(c => c.text),
+        answerIndexShuffled: correctIndex
+      };
+    });
+
+    // Optional: uncomment to also shuffle question order per run
+    // shuffleInPlace(built, rand);
+
+    return built;
+  }
+
   function renderQuestion(){
     clearMsg();
+
     const q = questions[idx];
     const ladderTag = (idx < 15) ? "STARTER" : "TEST MODE";
+
     elKicker.textContent = `${ladderTag} • ${q.cs} • ${q.skill} • Question ${idx+1} of ${questions.length}`;
     elStem.textContent = q.stem;
     elPrompt.textContent = q.prompt;
 
     elChoices.innerHTML = "";
-    q.choices.forEach((c,i)=>{
+    q.choicesShuffled.forEach((c,i)=>{
       const b = document.createElement('button');
       b.type="button";
       b.className="choiceBtn";
@@ -945,6 +933,7 @@
       return;
     }
     endISO = new Date().toISOString();
+
     const allSolved = perQ.every(x => x.solved);
     if(allSolved && misses === 0){
       setMsg("good","Mastery reached (100%)","You finished every question with zero misses. Copy the Submit Code below.");
@@ -959,13 +948,13 @@
     const q = questions[idx];
     const pq = perQ[idx];
 
-    // first attempt tracking
+    // First attempt tracking (counts attempts ONCE per question)
     if(!pq.firstAttemptMade){
       attempts++;
       pq.firstAttemptMade = true;
     }
 
-    const isCorrect = (choiceIndex === q.answerIndex);
+    const isCorrect = (choiceIndex === q.answerIndexShuffled);
 
     if(isCorrect){
       if(!pq.solved){
@@ -973,6 +962,7 @@
         solved++;
       }
 
+      // If they previously missed this question, move on quickly (no long explanation)
       if(pq.missed){
         setMsg("good","Correct","Moving to the next question.");
         updateStats();
@@ -980,12 +970,14 @@
         return;
       }
 
+      // First-try correct: show explanation for 3 seconds, then advance
       setMsg("good","Correct (First Try)", q.explanation);
       updateStats();
       setTimeout(nextQuestion, 3000);
       return;
     }
 
+    // Wrong
     if(!pq.missed){
       pq.missed = true;
       misses++;
@@ -1004,6 +996,17 @@
     startISO = new Date().toISOString();
     endISO = null;
 
+    // Seed uses student name + start timestamp so the shuffle changes each run
+    const seed = hashString(`${name}|${startISO}`);
+    questions = buildQuestionsForRun(seed);
+
+    // Build perQ tracking to match the active questions array
+    perQ = questions.map(() => ({
+      firstAttemptMade:false,
+      missed:false,
+      solved:false
+    }));
+
     btnRestart.disabled = false;
     btnRestart.onclick = () => location.reload();
 
@@ -1014,12 +1017,6 @@
     attempts = 0;
     solved = 0;
     misses = 0;
-
-    for(let i=0;i<perQ.length;i++){
-      perQ[i].firstAttemptMade = false;
-      perQ[i].missed = false;
-      perQ[i].solved = false;
-    }
 
     renderQuestion();
   }
