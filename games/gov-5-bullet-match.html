@@ -1,964 +1,277 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Gov Game 5 — Bullet Match (Mastery)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gov Game 5 — Bullet Match (Mastery)</title>
 
-  <style>
-    :root{
-      --bg:#0b1220;
-      --text:#e7eefc;
-      --muted:#a8b4cf;
-      --line:rgba(255,255,255,.12);
-      --shadow:0 18px 55px rgba(0,0,0,.40);
-      --radius:18px;
-      --good:#2bd576;
-      --bad:#ff5c7a;
-      --warn:#ffd166;
-      --accent:#7aa2ff;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(1100px 650px at 20% 10%, rgba(122,162,255,.18), transparent 60%),
-        radial-gradient(900px 520px at 80% 20%, rgba(43,213,118,.10), transparent 55%),
-        linear-gradient(180deg, #0b1220, #070b14);
-      color:var(--text);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-    }
-    .app{
-      width:min(1040px, 100%);
-      background:rgba(0,0,0,.18);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
-    }
-    header{
-      padding:16px 18px;
-      border-bottom:1px solid var(--line);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:14px;
-    }
-    h1{margin:0;font-size:18px;line-height:1.2}
-    .sub{margin:6px 0 0;color:var(--muted);font-size:13px;max-width:92ch}
-    .topRight{
-      text-align:right;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:flex-end;
-    }
-    .badge{
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.12em;
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid rgba(43,213,118,.38);
-      background:rgba(43,213,118,.14);
-      white-space:nowrap;
-    }
-    .btnRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-    button{
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.06);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:700;
-    }
-    button:hover{ border-color:rgba(122,162,255,.35); }
-    button.primary{
-      border-color:rgba(122,162,255,.45);
-      background:rgba(122,162,255,.16);
-    }
-    button.danger{
-      border-color:rgba(255,92,122,.45);
-      background:rgba(255,92,122,.14);
-    }
-    button:disabled{ opacity:.55; cursor:not-allowed; }
+<style>
+:root{
+  --bg:#0b1220;
+  --text:#e7eefc;
+  --muted:#a8b4cf;
+  --line:rgba(255,255,255,.12);
+  --shadow:0 18px 55px rgba(0,0,0,.40);
+  --radius:18px;
+  --good:#2bd576;
+  --bad:#ff5c7a;
+  --warn:#ffd166;
+  --accent:#7aa2ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:linear-gradient(180deg,#0b1220,#070b14);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.app{
+  width:min(1000px,100%);
+  background:rgba(0,0,0,.2);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap:14px;
-      padding:14px;
-    }
-    @media (max-width: 940px){
-      .grid{ grid-template-columns:1fr; }
-      .topRight{ align-items:flex-start; text-align:left; }
-      header{ flex-direction:column; }
-    }
+h1{margin:0 0 8px;font-size:20px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
 
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-    }
-    .kicker{
-      font-size:12px;
-      letter-spacing:.18em;
-      color:var(--muted);
-      text-transform:uppercase;
-      font-weight:800;
-    }
-    .stem{ margin-top:10px; font-size:16px; line-height:1.35; }
-    .prompt{ margin-top:10px; color:var(--muted); font-size:13px; }
+button{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+button.primary{
+  border-color:rgba(122,162,255,.45);
+  background:rgba(122,162,255,.16);
+}
+button.danger{
+  border-color:rgba(255,92,122,.45);
+  background:rgba(255,92,122,.14);
+}
+button:hover{border-color:rgba(122,162,255,.35)}
+button:disabled{opacity:.55;cursor:not-allowed}
 
-    .matchBox{
-      margin-top:12px;
-      display:grid;
-      gap:10px;
-    }
-    .pair{
-      display:grid;
-      grid-template-columns: 1fr 260px;
-      gap:10px;
-      align-items:stretch;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.18);
-    }
-    @media (max-width: 700px){
-      .pair{ grid-template-columns:1fr; }
-    }
-    .leftTxt{ font-weight:750; line-height:1.25; }
-    select{
-      width:100%;
-      padding:11px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.25);
-      color:var(--text);
-      outline:none;
-      font-weight:700;
-    }
-    select:focus{ border-color:rgba(122,162,255,.45); }
+/* ===== FIXED DROPDOWN STYLING ===== */
+select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.3);
+  color:var(--text);
+  outline:none;
+}
+select:focus{
+  border-color:var(--accent);
+}
+select option{
+  background:#0b1220;
+  color:#e7eefc;
+}
 
-    .actions{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+.row{
+  display:grid;
+  grid-template-columns:1fr 260px;
+  gap:14px;
+  margin-bottom:14px;
+  align-items:center;
+}
 
-    .msg{
-      margin-top:12px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.22);
-      display:none;
-    }
-    .msg.good{ display:block; border-color:rgba(43,213,118,.45); background:rgba(43,213,118,.10); }
-    .msg.bad{  display:block; border-color:rgba(255,92,122,.45); background:rgba(255,92,122,.10); }
-    .msg.warn{ display:block; border-color:rgba(255,209,102,.45); background:rgba(255,209,102,.10); }
-    .msg .title{ font-weight:900; margin-bottom:6px; }
+.msg{
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  display:none;
+}
+.msg.good{background:rgba(43,213,118,.15);display:block}
+.msg.bad{background:rgba(255,92,122,.15);display:block}
+.msg.warn{background:rgba(255,209,102,.15);display:block}
 
-    .sideRow{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-      color:var(--muted);
-      font-size:13px;
-      margin-top:10px;
-    }
-    .stat{
-      background:rgba(0,0,0,.18);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 12px;
-      min-width: 170px;
-    }
-    .stat b{ color:var(--text); }
+.stats{
+  margin-top:16px;
+  font-size:13px;
+  color:var(--muted);
+}
 
-    .nameGate{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-      align-items:center;
-    }
-    input{
-      width:min(380px,100%);
-      padding:11px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.25);
-      color:var(--text);
-      outline:none;
-    }
-    input:focus{ border-color:rgba(122,162,255,.45); }
+.codeBox{
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
+  background:rgba(0,0,0,.35);
+  font-family:monospace;
+  display:none;
+}
 
-    .footer{
-      padding:12px 14px;
-      border-top:1px solid var(--line);
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      color:var(--muted);
-      font-size:12px;
-    }
-    .codeBox{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.25);
-      display:none;
-      width:100%;
-      white-space:pre-wrap;
-      word-break:break-word;
-    }
-    .errBox{
-      display:none;
-      margin:14px;
-      padding:12px 14px;
-      border-radius:16px;
-      border:1px solid rgba(255,92,122,.55);
-      background:rgba(255,92,122,.10);
-    }
-    .errBox .t{ font-weight:900; margin-bottom:6px; }
-    .errBox pre{
-      margin:0;
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--text);
-      white-space:pre-wrap;
-      word-break:break-word;
-    }
-  </style>
+.errBox{
+  display:none;
+  background:rgba(255,92,122,.15);
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+</style>
 </head>
 
 <body>
-  <div class="app">
-    <div class="errBox" id="errBox">
-      <div class="t">On-page Error Box</div>
-      <pre id="errText"></pre>
-    </div>
+<div class="app">
 
-    <header>
-      <div>
-        <h1>Gov Game 5 — Bullet Match (Mastery)</h1>
-        <p class="sub">
-          Match each bullet to the correct term/idea. You can retry, but any wrong check records a miss.
-          Mastery unlocks only if you finish all questions with <b>0 misses</b>.
-        </p>
-        <div class="nameGate">
-          <input id="studentName" type="text" placeholder="Enter your name (First Last)" autocomplete="name" />
-          <button class="primary" id="btnStart">Start</button>
-          <button id="btnHome" onclick="location.href='../index.html'">Home</button>
-        </div>
-      </div>
+<div id="errBox" class="errBox"></div>
 
-      <div class="topRight">
-        <div class="badge">MASTERy = 100%</div>
-        <div class="btnRow">
-          <button id="btnRestart" class="danger" disabled>Restart</button>
-        </div>
-      </div>
-    </header>
+<h1>Gov Game 5 — Bullet Match</h1>
+<div class="sub">Match each bullet to the correct term. Mastery requires 0 misses.</div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="kicker" id="kicker">NOT STARTED</div>
-        <div class="stem" id="stem">Enter your name and click Start.</div>
-        <div class="prompt" id="prompt"></div>
+<div id="nameGate">
+  <input id="studentName" placeholder="Enter your name" />
+  <button class="primary" id="btnStart">Start</button>
+</div>
 
-        <div class="matchBox" id="matchBox"></div>
+<div id="gameArea" style="display:none;">
 
-        <div class="actions">
-          <button class="primary" id="btnCheck" disabled>Check Matches</button>
-          <button id="btnClear" disabled>Clear Selections</button>
-        </div>
+  <div id="questionArea"></div>
 
-        <div class="msg" id="msgBox">
-          <div class="title" id="msgTitle"></div>
-          <div id="msgBody"></div>
-        </div>
+  <button class="primary" id="btnCheck">Check Answers</button>
 
-        <div class="codeBox" id="codeBox"></div>
-      </div>
+  <div id="msgBox" class="msg"></div>
 
-      <div class="card">
-        <div class="kicker">STATS</div>
-
-        <div class="sideRow">
-          <div class="stat"><b>Student:</b><br><span id="stName">—</span></div>
-          <div class="stat"><b>Progress:</b><br><span id="stProg">0 / 0</span></div>
-          <div class="stat"><b>Accuracy:</b><br><span id="stAcc">0%</span></div>
-          <div class="stat"><b>Misses:</b><br><span id="stMiss">0</span></div>
-        </div>
-
-        <div class="sideRow" style="margin-top:12px;">
-          <div class="stat"><b>Attempts:</b><br><span id="stAtt">0</span></div>
-          <div class="stat"><b>Started:</b><br><span id="stStart">—</span></div>
-          <div class="stat"><b>Completed:</b><br><span id="stEnd">—</span></div>
-        </div>
-
-        <div class="sideRow" style="margin-top:12px;">
-          <div class="stat" style="min-width:100%;">
-            <b>Mastery Status:</b><br>
-            <span id="stMastery">Locked — finish all questions with 0 misses.</span>
-          </div>
-        </div>
-
-        <div class="sideRow" style="margin-top:12px;">
-          <div class="stat" style="min-width:100%;">
-            <b>Scoring rule:</b><br>
-            • First time you click “Check Matches” for a question = an attempt.<br>
-            • If any match is wrong on that check, it counts as a miss (retry allowed).<br>
-            • Mastery = finish all questions with 0 misses.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer">
-      <div>Legend Gov Series • Game 5 • Bullet Match</div>
-      <div>Tip: Every prompt uses the same option list—think “Which label best fits this bullet?”</div>
-    </div>
+  <div class="stats">
+    Accuracy: <span id="stAcc">0%</span> |
+    Misses: <span id="stMiss">0</span> |
+    Started: <span id="stStart"></span> |
+    Completed: <span id="stEnd"></span>
   </div>
 
+  <div id="codeBox" class="codeBox"></div>
+
+  <div style="margin-top:14px;">
+    <button class="danger" id="btnRestart">Restart</button>
+  </div>
+
+</div>
+
+</div>
+
 <script>
-(() => {
-  // =============================
-  // HARDENED ERROR BOX
-  // =============================
-  const errBox = document.getElementById('errBox');
-  const errText = document.getElementById('errText');
-  function showError(e){
-    errBox.style.display = 'block';
-    errText.textContent = (e && e.stack) ? e.stack : String(e);
+window.onerror=function(msg){
+  const e=document.getElementById("errBox");
+  e.style.display="block";
+  e.textContent=msg;
+};
+
+// ================= QUESTION BANK =================
+const data = [
+  {
+    bullets:[
+      "Congress has two chambers.",
+      "Members serve two-year terms.",
+      "Initiates revenue bills."
+    ],
+    answers:["Legislative Branch"]
+  },
+  {
+    bullets:[
+      "Interprets laws.",
+      "Can declare laws unconstitutional.",
+      "Headed by Supreme Court."
+    ],
+    answers:["Judicial Branch"]
+  },
+  {
+    bullets:[
+      "Enforces laws.",
+      "Commander in Chief.",
+      "Can veto legislation."
+    ],
+    answers:["Executive Branch"]
   }
-  window.addEventListener('error', (ev) => showError(ev.error || ev.message));
-  window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
+];
 
-  // =============================
-  // QUESTION BANK (24) — Bullet Match
-  // Each question: 4 prompts matched to 4 labels.
-  // =============================
-  const questions = [
-    {
-      id:"G5-001", cs:"CS 2", level:"STARTER",
-      stem:"Political parties and interest groups both influence government, but they do it differently.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Political Party","Interest Group","Election Focus","Issue Focus"],
-      pairs:[
-        {text:"Organizes candidates to win public office.", ans:"Political Party"},
-        {text:"Tries to influence laws without running candidates.", ans:"Interest Group"},
-        {text:"Concentrates on campaigns, turnout, and winning seats.", ans:"Election Focus"},
-        {text:"Concentrates on one policy area (e.g., education, environment).", ans:"Issue Focus"}
-      ],
-      explanation:"Parties aim to win office; interest groups aim to influence specific issues. That difference drives how they operate.",
-      hint:"Ask: office-seeking or issue-pushing?"
-    },
-    {
-      id:"G5-002", cs:"CS 3", level:"STARTER",
-      stem:"Not all sources are equally reliable.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Primary Source","Secondary Source","Bias/Opinion","Corroboration"],
-      pairs:[
-        {text:"Original law, court opinion, or government document.", ans:"Primary Source"},
-        {text:"Textbook summary of an event written later.", ans:"Secondary Source"},
-        {text:"Language that persuades without evidence (loaded wording).", ans:"Bias/Opinion"},
-        {text:"Checking multiple credible sources to confirm.", ans:"Corroboration"}
-      ],
-      explanation:"Credibility increases when claims can be verified through evidence and cross-checking.",
-      hint:"Original evidence vs interpretation vs checking."
-    },
-    {
-      id:"G5-003", cs:"CS 4", level:"STARTER",
-      stem:"Legislation moves through steps and decision points.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Committee Stage","Floor Vote","Compromise","Executive Action"],
-      pairs:[
-        {text:"Hearings, markup, and amendments are common here.", ans:"Committee Stage"},
-        {text:"Whole chamber votes yes/no on a bill.", ans:"Floor Vote"},
-        {text:"Changes made to gain enough support to pass.", ans:"Compromise"},
-        {text:"Sign or veto after passage.", ans:"Executive Action"}
-      ],
-      explanation:"Committees shape the details; votes and executive action determine final outcome.",
-      hint:"Where do amendments usually happen?"
-    },
-    {
-      id:"G5-004", cs:"CS 5", level:"STARTER",
-      stem:"Checks and balances prevent one branch from dominating.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Legislative Check","Executive Check","Judicial Check","Separation of Powers"],
-      pairs:[
-        {text:"Congress can override a veto with a supermajority.", ans:"Legislative Check"},
-        {text:"President can veto a bill passed by Congress.", ans:"Executive Check"},
-        {text:"Courts can declare a law unconstitutional.", ans:"Judicial Check"},
-        {text:"Power is divided among three branches with different roles.", ans:"Separation of Powers"}
-      ],
-      explanation:"Each branch has tools to limit the others and keep power balanced.",
-      hint:"Which branch is doing the checking?"
-    },
-    {
-      id:"G5-005", cs:"CS 6", level:"STARTER",
-      stem:"Federalists and Anti-Federalists disagreed about power and rights.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Federalist","Anti-Federalist","Bill of Rights","Centralization Concern"],
-      pairs:[
-        {text:"Supported ratifying the Constitution as written.", ans:"Federalist"},
-        {text:"Wanted stronger protections before ratification.", ans:"Anti-Federalist"},
-        {text:"First ten amendments protecting individual liberties.", ans:"Bill of Rights"},
-        {text:"Fear that national government would become too powerful.", ans:"Centralization Concern"}
-      ],
-      explanation:"Anti-Federalist concerns drove the push for a Bill of Rights.",
-      hint:"Who wanted explicit protections?"
-    },
-    {
-      id:"G5-006", cs:"CS 7", level:"STARTER",
-      stem:"Constitutional government changes over time.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Amendment","Court Precedent","Legislation","Informal Practice"],
-      pairs:[
-        {text:"Changes the text of the Constitution.", ans:"Amendment"},
-        {text:"A Supreme Court interpretation that guides future cases.", ans:"Court Precedent"},
-        {text:"A law passed by Congress to address a public issue.", ans:"Legislation"},
-        {text:"Oversight norms and traditions not written into the Constitution.", ans:"Informal Practice"}
-      ],
-      explanation:"The Constitution’s meaning in practice evolves through multiple pathways.",
-      hint:"Text change vs interpretation vs laws vs norms."
-    },
-    {
-      id:"G5-007", cs:"CS 8", level:"STARTER",
-      stem:"Civil liberties limit government power.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["1st Amendment","4th Amendment","5th Amendment","6th Amendment"],
-      pairs:[
-        {text:"Speech, religion, press, assembly, petition.", ans:"1st Amendment"},
-        {text:"Protection from unreasonable searches and seizures.", ans:"4th Amendment"},
-        {text:"Due process, no self-incrimination, no double jeopardy.", ans:"5th Amendment"},
-        {text:"Speedy/public trial, counsel, jury, confront witnesses.", ans:"6th Amendment"}
-      ],
-      explanation:"Each amendment targets a different point where government power can threaten liberty.",
-      hint:"Match right to amendment."
-    },
-    {
-      id:"G5-008", cs:"CS 9", level:"STARTER",
-      stem:"Federalism divides power between national and state governments.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Enumerated Powers","Reserved Powers","Concurrent Powers","Supremacy Clause"],
-      pairs:[
-        {text:"Powers listed for the national government in the Constitution.", ans:"Enumerated Powers"},
-        {text:"Powers kept by states or the people (10th Amendment).", ans:"Reserved Powers"},
-        {text:"Powers shared by both (e.g., taxing).", ans:"Concurrent Powers"},
-        {text:"Valid federal law overrides conflicting state law.", ans:"Supremacy Clause"}
-      ],
-      explanation:"Federalism is a system of divided and shared authority with conflict rules.",
-      hint:"Listed vs kept vs shared vs conflict rule."
-    },
-    {
-      id:"G5-009", cs:"CS 10", level:"STARTER",
-      stem:"Presidential elections use a state-based electoral system.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Popular Vote","Electoral Vote","Swing State","Winner-Take-All"],
-      pairs:[
-        {text:"Votes cast by individuals within a state.", ans:"Popular Vote"},
-        {text:"Votes used to determine president based on state outcomes.", ans:"Electoral Vote"},
-        {text:"Competitive state likely to decide outcome.", ans:"Swing State"},
-        {text:"Most states award all electoral votes to state winner.", ans:"Winner-Take-All"}
-      ],
-      explanation:"State outcomes translate into electoral votes that determine the presidency.",
-      hint:"Which term is about the translation rule?"
-    },
-    {
-      id:"G5-010", cs:"CS 11", level:"STARTER",
-      stem:"Voting rights expanded over time through amendments and laws.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["15th Amendment","19th Amendment","24th Amendment","26th Amendment"],
-      pairs:[
-        {text:"Voting rights regardless of race (post–Civil War).", ans:"15th Amendment"},
-        {text:"Women’s suffrage.", ans:"19th Amendment"},
-        {text:"Bans poll taxes in federal elections.", ans:"24th Amendment"},
-        {text:"Lowers voting age to 18.", ans:"26th Amendment"}
-      ],
-      explanation:"Each amendment removed a barrier to participation for specific groups.",
-      hint:"Which one is age? Which one is poll tax?"
-    },
-    {
-      id:"G5-011", cs:"CS 13", level:"STARTER",
-      stem:"Interest groups influence policy in several ways.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Lobbying","Grassroots","PAC/Donations","Amicus Brief"],
-      pairs:[
-        {text:"Directly meeting with lawmakers to persuade.", ans:"Lobbying"},
-        {text:"Encouraging members to contact officials.", ans:"Grassroots"},
-        {text:"Funding campaigns to support candidates.", ans:"PAC/Donations"},
-        {text:"Legal argument submitted to courts in a case.", ans:"Amicus Brief"}
-      ],
-      explanation:"Interest groups use both direct and indirect influence strategies.",
-      hint:"Courts vs lawmakers vs public pressure vs money."
-    },
-    {
-      id:"G5-012", cs:"CS 20–21", level:"STARTER",
-      stem:"Economic policy uses different tools depending on who is acting.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Fiscal Policy","Monetary Policy","Congress","Federal Reserve"],
-      pairs:[
-        {text:"Taxing and spending decisions to influence demand.", ans:"Fiscal Policy"},
-        {text:"Interest rates and money supply conditions.", ans:"Monetary Policy"},
-        {text:"Debates and passes tax/spending bills.", ans:"Congress"},
-        {text:"Sets policy rates and uses open-market operations.", ans:"Federal Reserve"}
-      ],
-      explanation:"Fiscal = taxes/spending (Congress); monetary = rates/money supply (Fed).",
-      hint:"Who does taxes? Who does rates?"
-    },
+const choices=["Legislative Branch","Executive Branch","Judicial Branch"];
 
-    // TEST MODE (13–24)
-    {
-      id:"G5-013", cs:"CS 1", level:"TEST",
-      stem:"Civic participation can happen at different levels.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Local Government","State Government","National Government","Targeting Authority"],
-      pairs:[
-        {text:"Decisions like zoning, roads, and city services.", ans:"Local Government"},
-        {text:"Policies like statewide education funding or state laws.", ans:"State Government"},
-        {text:"Foreign policy, national defense, federal taxes.", ans:"National Government"},
-        {text:"Engaging the level that has legal power over the issue.", ans:"Targeting Authority"}
-      ],
-      explanation:"Effective civic action targets the correct level of authority for the issue.",
-      hint:"Ask: who has jurisdiction?"
-    },
-    {
-      id:"G5-014", cs:"CS 4–5", level:"TEST",
-      stem:"Multiple points can stop or reshape a bill.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Committee Gatekeeping","Filibuster/Delay","Veto Power","Override"],
-      pairs:[
-        {text:"A bill can die or be rewritten before it reaches the floor.", ans:"Committee Gatekeeping"},
-        {text:"Procedural tactics can slow or block a vote.", ans:"Filibuster/Delay"},
-        {text:"Executive rejects a bill passed by legislature.", ans:"Veto Power"},
-        {text:"Legislature can enact despite veto with enough votes.", ans:"Override"}
-      ],
-      explanation:"The process has multiple “gates” where outcomes shift based on power and procedure.",
-      hint:"Which one is the executive tool?"
-    },
-    {
-      id:"G5-015", cs:"CS 7", level:"TEST",
-      stem:"Judicial decisions can reshape constitutional meaning in practice.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Judicial Review","Precedent","Interpretation","Application"],
-      pairs:[
-        {text:"Court evaluates whether law violates Constitution.", ans:"Judicial Review"},
-        {text:"Future cases follow an established ruling.", ans:"Precedent"},
-        {text:"Court explains what constitutional language means.", ans:"Interpretation"},
-        {text:"Government adjusts behavior to match rulings.", ans:"Application"}
-      ],
-      explanation:"Court reasoning becomes lasting through precedent and real through application.",
-      hint:"Meaning vs effect vs the court’s power."
-    },
-    {
-      id:"G5-016", cs:"CS 8", level:"TEST",
-      stem:"Rights exist with limits and responsibilities.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Protected Speech","Unprotected Threats","Time/Place/Manner","Balancing Rights"],
-      pairs:[
-        {text:"Political criticism of government policy.", ans:"Protected Speech"},
-        {text:"Statement that signals serious intent to harm someone.", ans:"Unprotected Threats"},
-        {text:"Rules like noise limits that apply regardless of viewpoint.", ans:"Time/Place/Manner"},
-        {text:"One person’s actions can’t destroy others’ rights/safety.", ans:"Balancing Rights"}
-      ],
-      explanation:"Constitutional protections are strong but not absolute—context and harm matter.",
-      hint:"Threats and disruption are big limit areas."
-    },
-    {
-      id:"G5-017", cs:"CS 9", level:"TEST",
-      stem:"Federalism creates both cooperation and conflict.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Cooperative Federalism","Conflict Federalism","Mandate","Preemption"],
-      pairs:[
-        {text:"Federal and state work together to run a program.", ans:"Cooperative Federalism"},
-        {text:"State and federal disagree about policy control.", ans:"Conflict Federalism"},
-        {text:"Federal government requires states to meet conditions.", ans:"Mandate"},
-        {text:"Federal law blocks states from regulating an area.", ans:"Preemption"}
-      ],
-      explanation:"Shared governance produces negotiation and clashes depending on authority and rules.",
-      hint:"Preemption = federal blocks state."
-    },
-    {
-      id:"G5-018", cs:"CS 10", level:"TEST",
-      stem:"Electoral outcomes can differ from the national popular vote.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["State-Based System","Electoral Majority","Popular Majority","Allocation Rules"],
-      pairs:[
-        {text:"President is chosen through states, not one national vote tally.", ans:"State-Based System"},
-        {text:"Winning enough electoral votes to reach the required total.", ans:"Electoral Majority"},
-        {text:"Winning more individual votes nationwide.", ans:"Popular Majority"},
-        {text:"Rules converting state votes into electoral votes.", ans:"Allocation Rules"}
-      ],
-      explanation:"Because the system is state-based, translation rules matter as much as total votes.",
-      hint:"Translation rule = allocation."
-    },
-    {
-      id:"G5-019", cs:"CS 12–13", level:"TEST",
-      stem:"Parties and interest groups often interact in elections and policy debates.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Coalition Building","Platform","Endorsement","Policy Expertise"],
-      pairs:[
-        {text:"Uniting different groups around shared goals to win.", ans:"Coalition Building"},
-        {text:"Official set of policy goals promoted during election.", ans:"Platform"},
-        {text:"Publicly supporting a candidate.", ans:"Endorsement"},
-        {text:"Providing research and specialized knowledge on an issue.", ans:"Policy Expertise"}
-      ],
-      explanation:"Winning and governing both require coalitions, messaging, and expertise.",
-      hint:"Which one is the party’s official agenda?"
-    },
-    {
-      id:"G5-020", cs:"CS 18–19", level:"TEST",
-      stem:"Public policy involves debate, compromise, and implementation.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Agenda Setting","Policy Formulation","Adoption","Evaluation"],
-      pairs:[
-        {text:"Issue becomes a priority for officials.", ans:"Agenda Setting"},
-        {text:"Drafting and refining possible solutions.", ans:"Policy Formulation"},
-        {text:"Final decision to approve a policy.", ans:"Adoption"},
-        {text:"Measuring results and unintended consequences.", ans:"Evaluation"}
-      ],
-      explanation:"Policy is a cycle: attention → design → decision → results check.",
-      hint:"Which is the final decision?"
-    },
-    {
-      id:"G5-021", cs:"CS 20", level:"TEST",
-      stem:"Fiscal policy can be expansionary or contractionary.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Expansionary Fiscal","Contractionary Fiscal","Deficit Spending","Automatic Stabilizer"],
-      pairs:[
-        {text:"Tax cuts or spending increases to boost demand.", ans:"Expansionary Fiscal"},
-        {text:"Tax increases or spending cuts to reduce demand.", ans:"Contractionary Fiscal"},
-        {text:"Spending more than revenue in a budget period.", ans:"Deficit Spending"},
-        {text:"Programs like unemployment insurance that respond automatically.", ans:"Automatic Stabilizer"}
-      ],
-      explanation:"Fiscal policy tools change demand; some changes happen automatically through built-in programs.",
-      hint:"Automatic = built-in response."
-    },
-    {
-      id:"G5-022", cs:"CS 21", level:"TEST",
-      stem:"The Federal Reserve uses tools to influence borrowing and spending.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Interest Rates","Open Market Ops","Reserve Requirement","Inflation Control"],
-      pairs:[
-        {text:"Price of borrowing; raising it can slow spending.", ans:"Interest Rates"},
-        {text:"Buying/selling securities to change money supply conditions.", ans:"Open Market Ops"},
-        {text:"Rule affecting how much banks must hold back.", ans:"Reserve Requirement"},
-        {text:"Using tools to reduce rising prices.", ans:"Inflation Control"}
-      ],
-      explanation:"Monetary tools change financial conditions, which changes spending and price pressure over time.",
-      hint:"Buying/selling securities = OMO."
-    },
-    {
-      id:"G5-023", cs:"CS 4", level:"TEST",
-      stem:"Compromise is common in lawmaking.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Amendment","Negotiation","Coalition","Tradeoff"],
-      pairs:[
-        {text:"A formal change to a bill’s language.", ans:"Amendment"},
-        {text:"Back-and-forth discussion to gain support.", ans:"Negotiation"},
-        {text:"A group of lawmakers joining to pass a bill.", ans:"Coalition"},
-        {text:"Giving up one demand to gain another.", ans:"Tradeoff"}
-      ],
-      explanation:"Passing laws often requires changing language and priorities to build a coalition.",
-      hint:"Tradeoff = give up / gain."
-    },
-    {
-      id:"G5-024", cs:"CS 5–7", level:"TEST",
-      stem:"Different processes can change government actions.",
-      prompt:"Match each bullet to the correct label.",
-      labels:["Veto","Override","Amendment Process","Court Ruling"],
-      pairs:[
-        {text:"Executive blocks a bill.", ans:"Veto"},
-        {text:"Legislature passes bill despite veto with enough votes.", ans:"Override"},
-        {text:"Formal change to Constitution through proposal and ratification.", ans:"Amendment Process"},
-        {text:"Judicial interpretation that reshapes how rules apply.", ans:"Court Ruling"}
-      ],
-      explanation:"Different branches and processes can change outcomes—through lawmaking, constitutional change, or interpretation.",
-      hint:"Which one is judicial?"
-    }
-  ];
+// ================= ENGINE =================
+const nameGate=document.getElementById("nameGate");
+const gameArea=document.getElementById("gameArea");
+const btnStart=document.getElementById("btnStart");
+const btnRestart=document.getElementById("btnRestart");
+const btnCheck=document.getElementById("btnCheck");
+const qArea=document.getElementById("questionArea");
+const msgBox=document.getElementById("msgBox");
+const stAcc=document.getElementById("stAcc");
+const stMiss=document.getElementById("stMiss");
+const stStart=document.getElementById("stStart");
+const stEnd=document.getElementById("stEnd");
+const codeBox=document.getElementById("codeBox");
 
-  // =============================
-  // ELEMENTS
-  // =============================
-  const elStudentName = document.getElementById('studentName');
-  const btnStart = document.getElementById('btnStart');
-  const btnRestart = document.getElementById('btnRestart');
+let misses=0;
+let startTime=null;
 
-  const elKicker = document.getElementById('kicker');
-  const elStem = document.getElementById('stem');
-  const elPrompt = document.getElementById('prompt');
-  const elMatchBox = document.getElementById('matchBox');
+btnStart.onclick=()=>{
+  if(document.getElementById("studentName").value.trim().length<2)return;
+  nameGate.style.display="none";
+  gameArea.style.display="block";
+  startTime=new Date();
+  stStart.textContent=startTime.toLocaleString();
+  render();
+};
 
-  const btnCheck = document.getElementById('btnCheck');
-  const btnClear = document.getElementById('btnClear');
+btnRestart.onclick=()=>location.reload();
 
-  const elMsgBox = document.getElementById('msgBox');
-  const elMsgTitle = document.getElementById('msgTitle');
-  const elMsgBody = document.getElementById('msgBody');
+function render(){
+  qArea.innerHTML="";
+  data.forEach((item,i)=>{
+    const div=document.createElement("div");
+    div.className="row";
 
-  const stName = document.getElementById('stName');
-  const stProg = document.getElementById('stProg');
-  const stAcc  = document.getElementById('stAcc');
-  const stMiss = document.getElementById('stMiss');
-  const stAtt  = document.getElementById('stAtt');
-  const stStart= document.getElementById('stStart');
-  const stEnd  = document.getElementById('stEnd');
-  const stMastery = document.getElementById('stMastery');
+    const bullets=document.createElement("div");
+    bullets.innerHTML=item.bullets.map(b=>`• ${b}`).join("<br>");
 
-  const elCodeBox = document.getElementById('codeBox');
+    const sel=document.createElement("select");
+    sel.id="q"+i;
+    sel.innerHTML=`<option value="">Select</option>`+
+      choices.map(c=>`<option>${c}</option>`).join("");
 
-  // =============================
-  // STATE
-  // =============================
-  let startISO=null, endISO=null;
-  let idx=0, attempts=0, solved=0, misses=0;
+    div.appendChild(bullets);
+    div.appendChild(sel);
+    qArea.appendChild(div);
+  });
+}
 
-  const perQ = questions.map(()=>({
-    checkedOnce:false,
-    missed:false,
-    solved:false
-  }));
+btnCheck.onclick=()=>{
+  misses=0;
+  data.forEach((item,i)=>{
+    const val=document.getElementById("q"+i).value;
+    if(!item.answers.includes(val))misses++;
+  });
 
-  let currentSelects = []; // selected label per pair (string)
+  const total=data.length;
+  const correct=total-misses;
+  const acc=Math.round((correct/total)*100);
 
-  function fmt(tsISO){
-    if(!tsISO) return "—";
-    const d = new Date(tsISO);
-    return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  stAcc.textContent=acc+"%";
+  stMiss.textContent=misses;
+
+  if(misses===0){
+    msgBox.className="msg good";
+    msgBox.textContent="Mastery Achieved!";
+    const endTime=new Date();
+    stEnd.textContent=endTime.toLocaleString();
+    codeBox.style.display="block";
+    codeBox.textContent="Submit Code: GOV5-"+correct+total;
+  }else{
+    msgBox.className="msg warn";
+    msgBox.textContent="Not Mastery. Fix mismatches.";
   }
-  function hashString(s){
-    let h = 2166136261;
-    for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return (h>>>0).toString(16).toUpperCase();
-  }
-
-  function setMsg(kind,title,body){
-    elMsgBox.className = `msg ${kind}`;
-    elMsgTitle.textContent = title;
-    elMsgBody.textContent = body;
-    elMsgBox.style.display = "block";
-  }
-  function clearMsg(){
-    elMsgBox.className="msg";
-    elMsgTitle.textContent="";
-    elMsgBody.textContent="";
-    elMsgBox.style.display="none";
-  }
-
-  function updateStats(){
-    stName.textContent = elStudentName.value.trim() || "—";
-    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
-    const acc = attempts ? Math.round((solved/attempts)*100) : 0;
-    stAcc.textContent = `${acc}%`;
-    stMiss.textContent = String(misses);
-    stAtt.textContent = String(attempts);
-    stStart.textContent = fmt(startISO);
-    stEnd.textContent = fmt(endISO);
-
-    const allSolved = perQ.every(x=>x.solved);
-    const mastery = allSolved && misses===0;
-
-    if(mastery){
-      stMastery.textContent = "UNLOCKED — 100% mastery achieved. Use the Submit Code.";
-      stMastery.style.color = "var(--good)";
-    } else {
-      stMastery.textContent = "Locked — finish all questions with 0 misses.";
-      stMastery.style.color = "var(--muted)";
-    }
-
-    if(mastery && endISO){
-      const name = elStudentName.value.trim();
-      const payload = `${name}|${startISO}|${endISO}|A${attempts}|S${solved}|M${misses}`;
-      const code = `GOV5-${hashString(payload)}-${attempts}${solved}${misses}`;
-      elCodeBox.style.display="block";
-      elCodeBox.textContent =
-        `✅ SUBMIT CODE (copy/paste)\n\n` +
-        `Name: ${name}\nStarted: ${fmt(startISO)}\nCompleted: ${fmt(endISO)}\nAccuracy: 100%\n\n` +
-        `${code}\n\n` +
-        `Note: If the code is missing, mastery is NOT complete.`;
-    } else {
-      elCodeBox.style.display="none";
-      elCodeBox.textContent="";
-    }
-  }
-
-  function renderQuestion(){
-    clearMsg();
-    const q = questions[idx];
-    const tag = (idx < 12) ? "STARTER" : "TEST MODE";
-    elKicker.textContent = `${tag} • ${q.cs} • BULLET MATCH • Question ${idx+1} of ${questions.length}`;
-    elStem.textContent = q.stem;
-    elPrompt.textContent = q.prompt;
-
-    currentSelects = q.pairs.map(()=> "");
-
-    elMatchBox.innerHTML = "";
-    q.pairs.forEach((p, i) => {
-      const row = document.createElement('div');
-      row.className = "pair";
-
-      const left = document.createElement('div');
-      left.className = "leftTxt";
-      left.textContent = `• ${p.text}`;
-
-      const sel = document.createElement('select');
-      sel.dataset.index = String(i);
-
-      const opt0 = document.createElement('option');
-      opt0.value = "";
-      opt0.textContent = "Select match…";
-      sel.appendChild(opt0);
-
-      q.labels.forEach(lbl => {
-        const o = document.createElement('option');
-        o.value = lbl;
-        o.textContent = lbl;
-        sel.appendChild(o);
-      });
-
-      sel.addEventListener('change', () => {
-        currentSelects[i] = sel.value;
-      });
-
-      row.appendChild(left);
-      row.appendChild(sel);
-      elMatchBox.appendChild(row);
-    });
-
-    btnCheck.disabled = false;
-    btnClear.disabled = false;
-    updateStats();
-  }
-
-  function clearSelections(){
-    const selects = elMatchBox.querySelectorAll('select');
-    selects.forEach(s => s.value = "");
-    currentSelects = currentSelects.map(()=> "");
-    clearMsg();
-  }
-
-  function checkMatches(){
-    const q = questions[idx];
-    const pq = perQ[idx];
-
-    // Require all selected
-    if(currentSelects.some(v => !v)){
-      setMsg("warn","Finish the Match","Select an answer for every bullet before checking.");
-      return;
-    }
-
-    // attempt counted on first check
-    if(!pq.checkedOnce){
-      attempts++;
-      pq.checkedOnce = true;
-    }
-
-    const wrong = [];
-    q.pairs.forEach((p,i)=>{
-      if(currentSelects[i] !== p.ans) wrong.push(i);
-    });
-
-    if(wrong.length){
-      if(!pq.missed){
-        pq.missed = true;
-        misses++;
-      }
-      setMsg("bad","Not Yet", `Some matches are incorrect. Hint: ${q.hint}`);
-      updateStats();
-      return;
-    }
-
-    // all correct
-    if(!pq.solved){
-      pq.solved = true;
-      solved++;
-    }
-
-    if(pq.missed){
-      setMsg("good","Correct","Moving to the next question.");
-      updateStats();
-      setTimeout(nextQuestion, 250);
-      return;
-    }
-
-    setMsg("good","Correct (First Try)", q.explanation);
-    updateStats();
-    setTimeout(nextQuestion, 3000);
-  }
-
-  function nextQuestion(){
-    if(idx < questions.length - 1){
-      idx++;
-      renderQuestion();
-      return;
-    }
-    endISO = new Date().toISOString();
-    const allSolved = perQ.every(x=>x.solved);
-    if(allSolved && misses===0){
-      setMsg("good","Mastery reached (100%)","You finished every question with zero misses. Copy the Submit Code below.");
-    } else {
-      setMsg("warn","End reached — Mastery NOT achieved",
-        `You finished the set, but you had ${misses} miss(es). Restart for a perfect run (0 misses).`);
-    }
-    updateStats();
-    btnCheck.disabled = true;
-    btnClear.disabled = true;
-  }
-
-  function startGame(){
-    const name = elStudentName.value.trim();
-    if(name.length < 2){
-      setMsg("warn","Name Required","Please enter your name to begin.");
-      return;
-    }
-
-    startISO = new Date().toISOString();
-    endISO = null;
-
-    btnRestart.disabled = false;
-    btnRestart.onclick = () => location.reload();
-
-    elStudentName.disabled = true;
-    btnStart.disabled = true;
-
-    idx=0; attempts=0; solved=0; misses=0;
-    for(const pq of perQ){
-      pq.checkedOnce=false; pq.missed=false; pq.solved=false;
-    }
-
-    renderQuestion();
-  }
-
-  btnStart.addEventListener('click', startGame);
-  elStudentName.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') startGame(); });
-
-  btnCheck.addEventListener('click', checkMatches);
-  btnClear.addEventListener('click', clearSelections);
-
-  updateStats();
-})();
+};
 </script>
 </body>
 </html>
