@@ -392,10 +392,10 @@
   window.addEventListener('unhandledrejection', (ev) => showError(ev.reason));
 
   // =============================
-  // BANK (24) — short “snapshot” excerpts (paraphrased) + OST items
+  // BANK (24) — snapshot excerpts + OST items
   // type: "mcq" or "select2"; correct = [index] or [i,j]
   // =============================
-  const questions = [
+  const questionsRaw = [
     {
       id:"G8-001", cs:"CS 6", type:"mcq",
       src:"Federalist/Anti-Federalist Debate",
@@ -452,7 +452,6 @@
       correct:[0],
       explanation:"Committees study and revise bills before floor debate."
     },
-
     {
       id:"G8-005", cs:"CS 10", type:"mcq",
       src:"Electoral College idea",
@@ -467,7 +466,6 @@
       correct:[1],
       explanation:"Because it’s state-based, the Electoral College can diverge from national popular vote totals."
     },
-
     {
       id:"G8-006", cs:"CS 11", type:"select2",
       src:"Voting Rights Expansion",
@@ -482,7 +480,6 @@
       correct:[0,1],
       explanation:"Removing poll taxes and lowering the voting age expanded access."
     },
-
     {
       id:"G8-007", cs:"CS 18–19", type:"mcq",
       src:"Public Policy Cycle",
@@ -497,7 +494,6 @@
       correct:[0],
       explanation:"Policy commonly moves from agenda → design → decision → implementation/evaluation."
     },
-
     {
       id:"G8-008", cs:"CS 13", type:"select2",
       src:"Interest Groups & Courts",
@@ -512,7 +508,6 @@
       correct:[0,1],
       explanation:"Amicus briefs and strategic lawsuits are common judicial influence methods."
     },
-
     {
       id:"G8-009", cs:"CS 20", type:"mcq",
       src:"Fiscal Policy",
@@ -527,7 +522,6 @@
       correct:[0],
       explanation:"Fiscal policy uses spending/taxes to affect demand and employment."
     },
-
     {
       id:"G8-010", cs:"CS 21", type:"mcq",
       src:"Monetary Policy",
@@ -542,8 +536,6 @@
       correct:[0],
       explanation:"Raising rates tightens borrowing and can slow demand/inflation."
     },
-
-    // more snapshots to hit 24
     {
       id:"G8-011", cs:"CS 3", type:"mcq",
       src:"Source Evaluation",
@@ -737,6 +729,59 @@
     }
   ];
 
+  // ==========================================================
+  // FIX: FORCE ALL CORRECT ANSWERS TO BE A, B, OR A & B
+  // - MCQ correct index becomes 0 or 1 (we force to A unless already A/B)
+  // - SELECT2 correct indices become [0,1] (A & B) by moving correct choices to front
+  // ==========================================================
+  function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+  function normalizeBank(raw){
+    const bank = deepClone(raw);
+
+    for(const q of bank){
+      if(!Array.isArray(q.choices) || !Array.isArray(q.correct)) continue;
+
+      if(q.type === "mcq"){
+        const ci = q.correct[0];
+        // If already A or B, keep it (meets requirement). Otherwise move correct choice into A.
+        if(ci !== 0 && ci !== 1){
+          const choices = q.choices.slice();
+          // swap correct into index 0
+          const tmp = choices[0];
+          choices[0] = choices[ci];
+          choices[ci] = tmp;
+
+          q.choices = choices;
+          q.correct = [0];
+        }
+      }
+
+      if(q.type === "select2"){
+        // Move the two correct choices to the first two positions (A & B).
+        const corr = q.correct.slice().sort((a,b)=>a-b);
+        if(corr.length !== 2) continue;
+
+        const choices = q.choices.slice();
+        const chosen = [choices[corr[0]], choices[corr[1]]];
+
+        // add remaining choices in original order, skipping the two correct indices
+        const rest = [];
+        for(let i=0;i<choices.length;i++){
+          if(i === corr[0] || i === corr[1]) continue;
+          rest.push(choices[i]);
+        }
+
+        q.choices = chosen.concat(rest);
+        q.correct = [0,1];
+      }
+    }
+
+    return bank;
+  }
+
+  const questions = normalizeBank(questionsRaw);
+
   // =============================
   // ELEMENTS
   // =============================
@@ -884,7 +929,6 @@
       ? "Directions: Select exactly TWO correct answers."
       : "Directions: Select the best answer.";
 
-    // answers
     elAnswers.innerHTML = "";
     const groupName = `q_${q.id}`;
 
