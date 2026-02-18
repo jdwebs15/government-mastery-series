@@ -288,7 +288,7 @@
       </div>
 
       <div class="topRight">
-        <div class="badge">MASTERy = 100%</div>
+        <div class="badge">MASTERY = 100%</div>
         <div class="btnRow">
           <button id="btnRestart" class="danger" disabled>Restart</button>
         </div>
@@ -493,7 +493,6 @@
      explanation:"Fiscal = taxes/spending (Congress/executive budget). Monetary = rates/money supply (Fed)."
     },
 
-    // Select Two items (two correct)
     {id:"G7-011", cs:"CS 5", type:"select2",
      stem:"Select TWO examples of checks on the legislative branch.",
      choices:[
@@ -518,7 +517,6 @@
      explanation:"States and federal government both tax and both run elections (states administer elections for federal offices)."
     },
 
-    // Stimulus + MCQ
     {id:"G7-013", cs:"CS 3", type:"mcq",
      stimulusTitle:"Stimulus",
      stimulus:
@@ -618,7 +616,6 @@
      explanation:"Oversight norms/practices are not written into the Constitution but shape how government works."
     },
 
-    // More OST-style mix
     {id:"G7-021", cs:"CS 8", type:"mcq",
      stem:"Which statement best explains the purpose of due process protections?",
      choices:[
@@ -780,13 +777,20 @@
   // STATE
   // =============================
   let startISO=null, endISO=null;
+
+  // order = indices into PLAY bank (not original bank)
   let order = [];
   let pos = 0;
+
   let attempts = 0;
   let solved = 0;
   let misses = 0;
 
-  const perQ = questions.map(()=>({ checkedOnce:false, missed:false, solved:false }));
+  // per-question tracking (aligned to PLAY bank indices)
+  let perQ = [];
+
+  // This is the bank used during play (choices re-ordered so correct letters are distributed)
+  let playBank = [];
 
   // =============================
   // HELPERS
@@ -796,11 +800,42 @@
     const d = new Date(tsISO);
     return d.toLocaleString(undefined, { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
   }
+
   function hashString(s){
     let h = 2166136261;
     for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
     return (h>>>0).toString(16).toUpperCase();
   }
+
+  // Deterministic PRNG (so the same student/run yields stable choice mixing)
+  function mulberry32(seed){
+    let t = seed >>> 0;
+    return function(){
+      t += 0x6D2B79F5;
+      let x = Math.imul(t ^ (t >>> 15), 1 | t);
+      x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+      return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function seededIntFromString(s){
+    // Turn a string into a 32-bit seed
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function shuffleWithRng(arr, rng){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(rng()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
   function shuffle(a){
     for(let i=a.length-1;i>0;i--){
       const j = Math.floor(Math.random()*(i+1));
@@ -824,7 +859,7 @@
 
   function updateStats(){
     stName.textContent = elStudentName.value.trim() || "—";
-    stProg.textContent = `${Math.min(solved, questions.length)} / ${questions.length}`;
+    stProg.textContent = `${Math.min(solved, playBank.length)} / ${playBank.length}`;
     const acc = attempts ? Math.round((solved/attempts)*100) : 0;
     stAcc.textContent = `${acc}%`;
     stMiss.textContent = String(misses);
@@ -832,7 +867,7 @@
     stStart.textContent = fmt(startISO);
     stEnd.textContent = fmt(endISO);
 
-    const allSolved = perQ.every(x=>x.solved);
+    const allSolved = perQ.length ? perQ.every(x=>x.solved) : false;
     const mastery = allSolved && misses===0;
 
     if(mastery){
@@ -859,29 +894,127 @@
     }
   }
 
+  // =============================
+  // CORE FIX: DISTRIBUTE CORRECT LETTERS
+  // - MCQ: correct letter cycles A→B→C→D across the bank
+  // - Select2: correct letter pairs cycle across the 6 combinations (AB, AC, AD, BC, BD, CD)
+  // Choices are re-ordered at Start, and correct indices are remapped.
+  // =============================
+  function buildPlayBank(studentName, runISO){
+    const baseSeed = seededIntFromString(`${studentName}|${runISO}|GOV7`);
+    let mcqCounter = 0;
+    let s2Counter  = 0;
+
+    const pairCycle = [
+      [0,1], // AB
+      [0,2], // AC
+      [0,3], // AD
+      [1,2], // BC
+      [1,3], // BD
+      [2,3]  // CD
+    ];
+
+    function makePermutation(q){
+      const n = q.choices.length;
+      if(n !== 4) return [0,1,2,3]; // safety (all your items are 4)
+
+      const rng = mulberry32(seededIntFromString(`${baseSeed}|${q.id}`));
+
+      const correctOld = [...q.correct].slice().sort((a,b)=>a-b);
+
+      // oldIdxByNewPos[newPos] = oldPos
+      const oldIdxByNewPos = Array(4).fill(null);
+      const usedOld = new Set();
+
+      if(q.type === "mcq"){
+        const target = mcqCounter % 4; // 0=A,1=B,2=C,3=D
+        mcqCounter++;
+
+        // place correct at target
+        const oldCorrect = correctOld[0];
+        oldIdxByNewPos[target] = oldCorrect;
+        usedOld.add(oldCorrect);
+
+        // fill remaining positions with remaining old indices (shuffled)
+        const remainingOld = [0,1,2,3].filter(x=>!usedOld.has(x));
+        shuffleWithRng(remainingOld, rng);
+
+        let k = 0;
+        for(let newPos=0; newPos<4; newPos++){
+          if(oldIdxByNewPos[newPos] === null){
+            oldIdxByNewPos[newPos] = remainingOld[k++];
+          }
+        }
+        return oldIdxByNewPos;
+      }
+
+      // select2
+      const targets = pairCycle[s2Counter % pairCycle.length];
+      s2Counter++;
+
+      // assign the two old corrects to the two target slots (order randomized)
+      const correctCopy = correctOld.slice();
+      if(rng() < 0.5) correctCopy.reverse();
+
+      oldIdxByNewPos[targets[0]] = correctCopy[0]; usedOld.add(correctCopy[0]);
+      oldIdxByNewPos[targets[1]] = correctCopy[1]; usedOld.add(correctCopy[1]);
+
+      // fill remaining slots with remaining old indices (shuffled)
+      const remainingOld = [0,1,2,3].filter(x=>!usedOld.has(x));
+      shuffleWithRng(remainingOld, rng);
+
+      let k = 0;
+      for(let newPos=0; newPos<4; newPos++){
+        if(oldIdxByNewPos[newPos] === null){
+          oldIdxByNewPos[newPos] = remainingOld[k++];
+        }
+      }
+      return oldIdxByNewPos;
+    }
+
+    const bank = questions.map(q => {
+      const perm = makePermutation(q);
+
+      const newChoices = perm.map(oldPos => q.choices[oldPos]);
+
+      // remap correct indices: find newPos where oldPos is one of correctOld
+      const correctOld = new Set(q.correct);
+      const newCorrect = [];
+      for(let newPos=0; newPos<perm.length; newPos++){
+        if(correctOld.has(perm[newPos])) newCorrect.push(newPos);
+      }
+      newCorrect.sort((a,b)=>a-b);
+
+      return {
+        ...q,
+        choices: newChoices,
+        correct: newCorrect
+      };
+    });
+
+    return bank;
+  }
+
+  // =============================
+  // GAME HELPERS
+  // =============================
   function getCurrentIndex(){ return order[pos]; }
-  function getCurrentQ(){ return questions[getCurrentIndex()]; }
+  function getCurrentQ(){ return playBank[getCurrentIndex()]; }
 
   function clearSelections(){
-    const q = getCurrentQ();
     const inputs = elAnswers.querySelectorAll('input');
     inputs.forEach(i => i.checked = false);
     clearMsg();
-
-    // For select2, re-enable if they had over-clicked (not strictly needed)
-    if(q.type === "select2"){
-      // nothing special; selection constraint handled on check
-    }
   }
 
   function renderQuestion(){
     clearMsg();
     const qi = getCurrentIndex();
-    const q = questions[qi];
+    const q = playBank[qi];
 
     const typeLabel = (q.type === "mcq") ? "MCQ" : "SELECT TWO";
     elKicker.innerHTML = `
-      <span>OST MIXER • ${q.cs} • Question ${pos+1} of ${questions.length}</span>
+      <span>OST MIXER • ${q.cs} • Question ${pos+1} of ${playBank.length}</span>
       <span class="pill">${typeLabel}</span>
     `;
 
@@ -943,7 +1076,7 @@
 
   function checkAnswer(){
     const qi = getCurrentIndex();
-    const q = questions[qi];
+    const q = playBank[qi];
     const pq = perQ[qi];
     const sel = getSelectedIndices();
 
@@ -1031,11 +1164,15 @@
     elStudentName.disabled = true;
     btnStart.disabled = true;
 
+    // Build play bank with distributed correct letters
+    playBank = buildPlayBank(name, startISO);
+
     // reset state
     attempts = 0; solved = 0; misses = 0;
-    perQ.forEach(p => { p.checkedOnce=false; p.missed=false; p.solved=false; });
+    perQ = playBank.map(()=>({ checkedOnce:false, missed:false, solved:false }));
 
-    order = shuffle([...Array(questions.length)].map((_,i)=>i));
+    // random question order (independent of answer-letter distribution)
+    order = shuffle([...Array(playBank.length)].map((_,i)=>i));
     pos = 0;
 
     renderQuestion();
@@ -1047,6 +1184,7 @@
   btnCheck.addEventListener('click', checkAnswer);
   btnClear.addEventListener('click', clearSelections);
 
+  // initial stats
   updateStats();
 })();
 </script>
